@@ -38,10 +38,22 @@ export default function DashboardPage() {
 
       setUser(session.user)
 
-      const response = await fetch(`/api/projects?user_id=${session.user.id}`)
-      const data = await response.json()
-      setProjects(data)
-      setLoading(false)
+      try {
+        const response = await fetch(`/api/projects?user_id=${session.user.id}`)
+        const data = await response.json()
+        
+        if (Array.isArray(data)) {
+          setProjects(data)
+        } else {
+          console.error('[v0] API response is not an array:', data)
+          setProjects([])
+        }
+      } catch (error) {
+        console.error('[v0] Error loading projects:', error)
+        setProjects([])
+      } finally {
+        setLoading(false)
+      }
     }
 
     loadProjects()
@@ -97,7 +109,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
-              {projects.filter((p) => p.status === 'in_progress').length}
+              {Array.isArray(projects) ? projects.filter((p) => p.status === 'in_progress').length : 0}
             </p>
           </CardContent>
         </Card>
@@ -109,7 +121,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
-              {projects.filter((p) => p.status === 'completed').length}
+              {Array.isArray(projects) ? projects.filter((p) => p.status === 'completed').length : 0}
             </p>
           </CardContent>
         </Card>
