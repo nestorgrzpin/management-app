@@ -31,8 +31,8 @@ export async function POST(request: NextRequest) {
       client,
       start_date,
       estimated_amount,
-      procurement_type,
-      execution_date,
+      adjudication_type,
+      estimated_execution_date,
       user_id,
     } = await request.json()
 
@@ -41,8 +41,8 @@ export async function POST(request: NextRequest) {
       client,
       start_date,
       estimated_amount,
-      procurement_type,
-      execution_date,
+      adjudication_type,
+      estimated_execution_date,
       user_id,
     })
 
@@ -54,10 +54,10 @@ export async function POST(request: NextRequest) {
         client,
         start_date,
         estimated_amount,
-        procurement_type,
-        execution_date,
-        user_id,
-        status: 'planning',
+        adjudication_type,
+        estimated_execution_date,
+        created_by: user_id,
+        status: 'active',
       })
       .select()
       .single()
@@ -68,35 +68,6 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[v0] Project created:', project)
-
-    // Clone template activities
-    const { data: templateActivities, error: templateError } = await supabase
-      .from('template_activities')
-      .select('*')
-      .order('code', { ascending: true })
-
-    if (templateError) {
-      console.error('[v0] Error fetching templates:', templateError)
-    }
-
-    if (templateActivities && templateActivities.length > 0) {
-      const activitiesToInsert = templateActivities.map((template: any) => ({
-        project_id: project.id,
-        phase: template.phase,
-        code: template.code,
-        name: template.name,
-        duration_hours: template.duration_hours,
-        duration_days: template.duration_days,
-      }))
-
-      const { error: insertError } = await supabase
-        .from('project_activities')
-        .insert(activitiesToInsert)
-
-      if (insertError) {
-        console.error('[v0] Error inserting activities:', insertError)
-      }
-    }
 
     return NextResponse.json(project)
   } catch (error) {
@@ -122,7 +93,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase
       .from('projects')
       .select('*')
-      .eq('user_id', userId)
+      .eq('created_by', userId)
       .order('created_at', { ascending: false })
 
     if (error) {

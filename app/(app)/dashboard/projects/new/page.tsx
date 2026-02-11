@@ -26,8 +26,8 @@ export default function NewProjectPage() {
     client: '',
     start_date: new Date().toISOString().split('T')[0],
     estimated_amount: '',
-    procurement_type: 'direct',
-    execution_date: '',
+    adjudication_type: 'direct',
+    estimated_execution_date: '',
   })
   const router = useRouter()
   const supabase = createClient()
@@ -55,7 +55,7 @@ export default function NewProjectPage() {
         return
       }
 
-      if (!formData.name || !formData.client || !formData.start_date || !formData.execution_date || !formData.estimated_amount) {
+      if (!formData.name || !formData.client || !formData.start_date || !formData.estimated_execution_date || !formData.estimated_amount) {
         toast.error('Por favor completa todos los campos requeridos.')
         setLoading(false)
         return
@@ -155,12 +155,12 @@ export default function NewProjectPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="execution_date">Fecha Estimada de Ejecución *</Label>
+                <Label htmlFor="estimated_execution_date">Fecha Estimada de Ejecución *</Label>
                 <Input
-                  id="execution_date"
-                  name="execution_date"
+                  id="estimated_execution_date"
+                  name="estimated_execution_date"
                   type="date"
-                  value={formData.execution_date}
+                  value={formData.estimated_execution_date}
                   onChange={handleChange}
                   required
                 />
@@ -181,17 +181,17 @@ export default function NewProjectPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="procurement_type">Tipo de Adjudicación *</Label>
+                <Label htmlFor="adjudication_type">Tipo de Adjudicación *</Label>
                 <Select
-                  value={formData.procurement_type}
+                  value={formData.adjudication_type}
                   onValueChange={(value) =>
                     setFormData((prev) => ({
                       ...prev,
-                      procurement_type: value,
+                      adjudication_type: value,
                     }))
                   }
                 >
-                  <SelectTrigger id="procurement_type">
+                  <SelectTrigger id="adjudication_type">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
