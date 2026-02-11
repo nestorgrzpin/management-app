@@ -32,6 +32,14 @@ export default function SignupPage() {
     setLoading(true)
 
     try {
+      if (!fullName || !email || !password) {
+        toast.error('Por favor completa todos los campos')
+        setLoading(false)
+        return
+      }
+
+      console.log('[v0] Attempting signup with:', { email, fullName, role })
+
       const { data, error: signupError } = await supabase.auth.signUp({
         email,
         password,
@@ -45,24 +53,20 @@ export default function SignupPage() {
       })
 
       if (signupError) {
-        toast.error(signupError.message)
+        console.error('[v0] Signup error:', signupError)
+        toast.error(`Error en registro: ${signupError.message}`)
         return
       }
 
-      // Create user profile
-      if (data.user) {
-        await supabase.from('users').insert({
-          id: data.user.id,
-          email,
-          full_name: fullName,
-          role,
-        })
-      }
-
+      console.log('[v0] Signup successful:', data.user?.id)
       toast.success('¡Cuenta creada! Por favor verifica tu email.')
+      
+      // Redirect to login after showing success
       setTimeout(() => router.push('/login'), 2000)
     } catch (error) {
-      toast.error('An error occurred')
+      console.error('[v0] Signup exception:', error)
+      const errorMsg = error instanceof Error ? error.message : 'Error desconocido'
+      toast.error(`Error: ${errorMsg}`)
     } finally {
       setLoading(false)
     }
