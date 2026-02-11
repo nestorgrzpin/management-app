@@ -46,17 +46,31 @@ export default function ProjectDetailPage() {
           setProject(projectData)
           console.log('[v0] Project loaded:', projectData.id)
 
-          // Load activities
-          const { data: activitiesData, error: activitiesError } = await supabase
-            .from('activities')
-            .select('*')
+          // Load project activities with their template details
+          const { data: projectActivitiesData, error: activitiesError } = await supabase
+            .from('project_activities')
+            .select(`
+              *,
+              activities:activity_id(*)
+            `)
             .eq('project_id', projectId)
-            .order('code', { ascending: true })
+            .order('created_at', { ascending: true })
 
-          console.log('[v0] Activities loaded:', activitiesData?.length || 0, activitiesError)
+          console.log('[v0] Project activities loaded:', projectActivitiesData?.length || 0, activitiesError)
 
-          if (activitiesData) {
-            setActivities(activitiesData)
+          if (projectActivitiesData) {
+            // Map project_activities with their activity details
+            const mappedActivities = projectActivitiesData.map((pa: any) => ({
+              ...pa.activities,
+              project_activity_id: pa.id,
+              actual_duration_value: pa.actual_duration_value,
+              actual_duration_unit: pa.actual_duration_unit,
+              status: pa.status,
+              progress_percentage: pa.progress_percentage,
+              start_date: pa.start_date,
+              end_date: pa.end_date,
+            }))
+            setActivities(mappedActivities)
           }
         }
       } catch (error) {
@@ -194,14 +208,29 @@ export default function ProjectDetailPage() {
             projectId={projectId}
             projectStartDate={project.start_date}
             onActivitiesChange={() => {
-              // Reload activities
+              // Reload activities from project_activities table
               supabase
-                .from('activities')
-                .select('*')
+                .from('project_activities')
+                .select(`
+                  *,
+                  activities:activity_id(*)
+                `)
                 .eq('project_id', projectId)
-                .order('code', { ascending: true })
+                .order('created_at', { ascending: true })
                 .then(({ data }) => {
-                  if (data) setActivities(data)
+                  if (data) {
+                    const mappedActivities = data.map((pa: any) => ({
+                      ...pa.activities,
+                      project_activity_id: pa.id,
+                      actual_duration_value: pa.actual_duration_value,
+                      actual_duration_unit: pa.actual_duration_unit,
+                      status: pa.status,
+                      progress_percentage: pa.progress_percentage,
+                      start_date: pa.start_date,
+                      end_date: pa.end_date,
+                    }))
+                    setActivities(mappedActivities)
+                  }
                 })
             }}
           />

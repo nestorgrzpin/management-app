@@ -91,42 +91,39 @@ export async function POST(request: NextRequest) {
 
     console.log('[v0] Project created:', project)
 
-    // Clone template activities to project
+    // Clone template activities to project via project_activities table
     console.log('[v0] Cloning template activities...')
     const { data: templateActivities, error: templateError } = await supabase
       .from('activities')
       .select('*')
-      .is('project_id', null)  // Get template activities (no project_id)
       .order('code', { ascending: true })
 
     if (templateError) {
       console.error('[v0] Error fetching template activities:', templateError)
+      // Don't fail the project creation if activities fail
     } else if (templateActivities && templateActivities.length > 0) {
       console.log(`[v0] Found ${templateActivities.length} template activities to clone`)
       
-      const activitiesToInsert = templateActivities.map((template: any) => ({
+      // Insert into project_activities linking project to each activity template
+      const projectActivitiesToInsert = templateActivities.map((template: any) => ({
         project_id: project.id,
-        code: template.code,
-        name: template.name,
-        objective: template.objective,
-        expected_info: template.expected_info,
-        phase_id: template.phase_id,
-        is_subactivity: template.is_subactivity,
-        base_duration_value: template.base_duration_value,
-        base_duration_unit: template.base_duration_unit,
-        parent_activity_id: template.parent_activity_id,
+        activity_id: template.id,
+        status: 'pending',
+        progress_percentage: 0,
       }))
 
       const { error: insertError, data: insertedActivities } = await supabase
-        .from('activities')
-        .insert(activitiesToInsert)
+        .from('project_activities')
+        .insert(projectActivitiesToInsert)
         .select()
 
       if (insertError) {
-        console.error('[v0] Error inserting activities:', insertError)
+        console.error('[v0] Error linking activities to project:', insertError)
       } else {
-        console.log(`[v0] Successfully cloned ${insertedActivities?.length || 0} activities`)
+        console.log(`[v0] Successfully linked ${insertedActivities?.length || 0} activities to project`)
       }
+    } else {
+      console.warn('[v0] No template activities found to clone')
     }
 
     return NextResponse.json(project)

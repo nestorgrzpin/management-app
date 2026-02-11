@@ -28,7 +28,7 @@ interface Activity {
   base_duration_value: number
   base_duration_unit: 'hours' | 'days'
   phase_id?: string
-  project_id: string
+  project_activity_id?: string
 }
 
 interface ActivitiesTableProps {
@@ -84,18 +84,19 @@ export default function ActivitiesTable({
     setEditUnit(activity.base_duration_unit)
   }
 
-  const handleSave = async (activityId: string) => {
+  const handleSave = async (activity: Activity) => {
     try {
+      // Update the project_activity record (not the template activity)
       const { error } = await supabase
-        .from('activities')
+        .from('project_activities')
         .update({
-          base_duration_value: editValue,
-          base_duration_unit: editUnit,
+          actual_duration_value: editValue,
+          actual_duration_unit: editUnit,
         })
-        .eq('id', activityId)
+        .eq('id', activity.project_activity_id)
 
       if (error) {
-        console.error('[v0] Error updating activity:', error)
+        console.error('[v0] Error updating project activity:', error)
         toast.error('Error al actualizar la actividad')
         return
       }
@@ -178,7 +179,7 @@ export default function ActivitiesTable({
                         <Button
                           size="sm"
                           variant="default"
-                          onClick={() => handleSave(activity.id)}
+                          onClick={() => handleSave(activity)}
                         >
                           <Save className="w-4 h-4 mr-1" />
                           Guardar
