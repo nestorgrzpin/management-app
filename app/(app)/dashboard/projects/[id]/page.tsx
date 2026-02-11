@@ -125,11 +125,11 @@ export default function ProjectDetailPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Ejecución</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Ejecución Estimada</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="font-semibold">
-              {format(new Date(project.execution_date), 'dd MMM yyyy', { locale: es })}
+              {project.estimated_execution_date ? format(new Date(project.estimated_execution_date), 'dd MMM yyyy', { locale: es }) : 'N/A'}
             </p>
           </CardContent>
         </Card>
@@ -150,7 +150,7 @@ export default function ProjectDetailPage() {
             <CardTitle className="text-sm font-medium text-gray-600">Adjudicación</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="font-semibold capitalize">{project.procurement_type}</p>
+            <p className="font-semibold capitalize">{project.adjudication_type}</p>
           </CardContent>
         </Card>
       </div>
