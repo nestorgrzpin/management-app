@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
       estimated_execution_date,
       user_id,
       user_email,
+      user_full_name,
     } = await request.json()
 
     console.log('[v0] Creating project with data:', {
@@ -54,6 +55,7 @@ export async function POST(request: NextRequest) {
       .upsert({
         id: user_id,
         email: user_email,
+        full_name: user_full_name || user_email || 'Usuario',
         role: 'analyst',
       }, {
         onConflict: 'id'

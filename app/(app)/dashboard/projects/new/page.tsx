@@ -63,6 +63,8 @@ export default function NewProjectPage() {
 
       console.log('[v0] Submitting project with user_id:', session.user.id)
 
+      const fullName = session.user.user_metadata?.full_name || session.user.email || 'Usuario'
+
       const response = await fetch('/api/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,6 +72,7 @@ export default function NewProjectPage() {
           ...formData,
           user_id: session.user.id,
           user_email: session.user.email,
+          user_full_name: fullName,
         }),
       })
 
