@@ -91,6 +91,44 @@ export async function POST(request: NextRequest) {
 
     console.log('[v0] Project created:', project)
 
+    // Clone template activities to project
+    console.log('[v0] Cloning template activities...')
+    const { data: templateActivities, error: templateError } = await supabase
+      .from('activities')
+      .select('*')
+      .is('project_id', null)  // Get template activities (no project_id)
+      .order('code', { ascending: true })
+
+    if (templateError) {
+      console.error('[v0] Error fetching template activities:', templateError)
+    } else if (templateActivities && templateActivities.length > 0) {
+      console.log(`[v0] Found ${templateActivities.length} template activities to clone`)
+      
+      const activitiesToInsert = templateActivities.map((template: any) => ({
+        project_id: project.id,
+        code: template.code,
+        name: template.name,
+        objective: template.objective,
+        expected_info: template.expected_info,
+        phase_id: template.phase_id,
+        is_subactivity: template.is_subactivity,
+        base_duration_value: template.base_duration_value,
+        base_duration_unit: template.base_duration_unit,
+        parent_activity_id: template.parent_activity_id,
+      }))
+
+      const { error: insertError, data: insertedActivities } = await supabase
+        .from('activities')
+        .insert(activitiesToInsert)
+        .select()
+
+      if (insertError) {
+        console.error('[v0] Error inserting activities:', insertError)
+      } else {
+        console.log(`[v0] Successfully cloned ${insertedActivities?.length || 0} activities`)
+      }
+    }
+
     return NextResponse.json(project)
   } catch (error) {
     console.error('[v0] Unexpected error:', error)

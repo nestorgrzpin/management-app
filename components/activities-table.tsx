@@ -25,9 +25,9 @@ interface Activity {
   id: string
   code: string
   name: string
-  duration_hours: number
-  duration_days: number
-  phase: string
+  base_duration_value: number
+  base_duration_unit: 'hours' | 'days'
+  phase_id?: string
   project_id: string
 }
 
@@ -45,8 +45,8 @@ export default function ActivitiesTable({
   onActivitiesChange,
 }: ActivitiesTableProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editDays, setEditDays] = useState<number>(0)
-  const [editHours, setEditHours] = useState<number>(0)
+  const [editValue, setEditValue] = useState<number>(0)
+  const [editUnit, setEditUnit] = useState<'hours' | 'days'>('hours')
   const supabase = createClient()
 
   const isSubactivity = (code: string) => code.split('.').length === 3
@@ -63,14 +63,16 @@ export default function ActivitiesTable({
     // Calculate cumulative start date
     for (let i = 0; i < index; i++) {
       const prevActivity = activities[i]
-      currentDate =
-        prevActivity.duration_days > 0
-          ? addDays(currentDate, prevActivity.duration_days)
-          : addDays(currentDate, Math.ceil(prevActivity.duration_hours / 24))
+      const prevDays = prevActivity.base_duration_unit === 'days' 
+        ? prevActivity.base_duration_value 
+        : Math.ceil(prevActivity.base_duration_value / 24)
+      currentDate = addDays(currentDate, prevDays)
     }
 
     const actStart = currentDate
-    const duration = activity.duration_days > 0 ? activity.duration_days : Math.ceil(activity.duration_hours / 24)
+    const duration = activity.base_duration_unit === 'days' 
+      ? activity.base_duration_value 
+      : Math.ceil(activity.base_duration_value / 24)
     const actEnd = addDays(actStart, duration)
 
     return { start: actStart, end: actEnd, duration }
@@ -78,21 +80,22 @@ export default function ActivitiesTable({
 
   const handleEdit = (activity: Activity) => {
     setEditingId(activity.id)
-    setEditDays(activity.duration_days)
-    setEditHours(activity.duration_hours)
+    setEditValue(activity.base_duration_value)
+    setEditUnit(activity.base_duration_unit)
   }
 
   const handleSave = async (activityId: string) => {
     try {
       const { error } = await supabase
-        .from('project_activities')
+        .from('activities')
         .update({
-          duration_days: editDays,
-          duration_hours: editHours,
+          base_duration_value: editValue,
+          base_duration_unit: editUnit,
         })
         .eq('id', activityId)
 
       if (error) {
+        console.error('[v0] Error updating activity:', error)
         toast.error('Error al actualizar la actividad')
         return
       }
@@ -101,6 +104,7 @@ export default function ActivitiesTable({
       setEditingId(null)
       onActivitiesChange()
     } catch (error) {
+      console.error('[v0] Save error:', error)
       toast.error('Error al guardar los cambios')
     }
   }
@@ -114,8 +118,7 @@ export default function ActivitiesTable({
               <TableRow>
                 <TableHead>Código</TableHead>
                 <TableHead>Actividad</TableHead>
-                <TableHead>Fase</TableHead>
-                <TableHead>Duración</TableHead>
+                <TableHead>Duración Estimada</TableHead>
                 <TableHead>Inicio</TableHead>
                 <TableHead>Fin</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
@@ -140,29 +143,27 @@ export default function ActivitiesTable({
                       {activity.name}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{activity.phase}</Badge>
-                    </TableCell>
-                    <TableCell>
                       {isEditing ? (
-                        <div className="flex gap-2">
+                        <div className="flex gap-1">
                           <Input
                             type="number"
-                            value={editDays}
-                            onChange={(e) => setEditDays(Number(e.target.value))}
-                            placeholder="Días"
-                            className="w-20 h-8"
+                            value={editValue}
+                            onChange={(e) => setEditValue(Number(e.target.value))}
+                            placeholder="Valor"
+                            className="w-16 h-8"
                           />
-                          <Input
-                            type="number"
-                            value={editHours}
-                            onChange={(e) => setEditHours(Number(e.target.value))}
-                            placeholder="Horas"
-                            className="w-20 h-8"
-                          />
+                          <select
+                            value={editUnit}
+                            onChange={(e) => setEditUnit(e.target.value as 'hours' | 'days')}
+                            className="px-2 h-8 text-sm border rounded"
+                          >
+                            <option value="hours">Horas</option>
+                            <option value="days">Días</option>
+                          </select>
                         </div>
                       ) : (
                         <span>
-                          {duration} día{duration !== 1 ? 's' : ''}
+                          {activity.base_duration_value} {activity.base_duration_unit === 'hours' ? 'hrs' : 'días'}
                         </span>
                       )}
                     </TableCell>
