@@ -47,28 +47,24 @@ export async function POST(request: NextRequest) {
       user_id,
     })
 
-    // Ensure user exists in users table
-    const { data: existingUser, error: checkError } = await supabase
+    console.log('[v0] Ensuring user exists in users table...')
+    // Use upsert to ensure user exists - don't fail if it already does
+    const { error: userUpsertError } = await supabase
       .from('users')
-      .select('id')
-      .eq('id', user_id)
-      .single()
+      .upsert({
+        id: user_id,
+        email: user_email,
+        role: 'analyst',
+      }, {
+        onConflict: 'id'
+      })
 
-    if (checkError || !existingUser) {
-      console.log('[v0] User not in users table, creating entry...')
-      const { error: userInsertError } = await supabase
-        .from('users')
-        .insert({
-          id: user_id,
-          email: user_email,
-          role: 'analyst',
-        })
-
-      if (userInsertError) {
-        console.error('[v0] Error creating user entry:', userInsertError)
-        // Continue anyway - might already exist
-      }
+    if (userUpsertError) {
+      console.error('[v0] Error ensuring user exists:', userUpsertError)
+      return NextResponse.json({ error: `User sync failed: ${userUpsertError.message}` }, { status: 400 })
     }
+
+    console.log('[v0] User synced successfully')
 
     // Create project
     const { data: project, error } = await supabase
