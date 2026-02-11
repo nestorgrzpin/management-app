@@ -16,10 +16,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Edit2, Save } from 'lucide-react'
+import { Edit2, Save, Link2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { addDays, parseISO, format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import SharePointViewer from './sharepoint-viewer'
 
 interface Activity {
   id: string
@@ -29,6 +30,8 @@ interface Activity {
   base_duration_unit: 'hours' | 'days'
   phase_id?: string
   project_activity_id?: string
+  sharepoint_document_url?: string | null
+  document_name?: string | null
 }
 
 interface ActivitiesTableProps {
@@ -47,6 +50,9 @@ export default function ActivitiesTable({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState<number>(0)
   const [editUnit, setEditUnit] = useState<'hours' | 'days'>('hours')
+  const [editDocUrl, setEditDocUrl] = useState<string>('')
+  const [editDocName, setEditDocName] = useState<string>('')
+  const [isEditingDoc, setIsEditingDoc] = useState<string | null>(null)
   const supabase = createClient()
 
   const isSubactivity = (code: string) => code.split('.').length === 3
@@ -82,6 +88,42 @@ export default function ActivitiesTable({
     setEditingId(activity.id)
     setEditValue(activity.base_duration_value)
     setEditUnit(activity.base_duration_unit)
+  }
+
+  const handleEditDocument = (activity: Activity) => {
+    setIsEditingDoc(activity.project_activity_id || null)
+    setEditDocUrl(activity.sharepoint_document_url || '')
+    setEditDocName(activity.document_name || '')
+  }
+
+  const handleSaveDocument = async (activity: Activity) => {
+    try {
+      if (!editDocUrl) {
+        toast.error('Por favor ingresa una URL de documento')
+        return
+      }
+
+      const { error } = await supabase
+        .from('project_activities')
+        .update({
+          sharepoint_document_url: editDocUrl,
+          document_name: editDocName || 'Documento',
+        })
+        .eq('id', activity.project_activity_id)
+
+      if (error) {
+        console.error('[v0] Error updating document:', error)
+        toast.error('Error al guardar el documento')
+        return
+      }
+
+      toast.success('Documento vinculado exitosamente')
+      setIsEditingDoc(null)
+      onActivitiesChange()
+    } catch (error) {
+      console.error('[v0] Error:', error)
+      toast.error('Error al guardar el documento')
+    }
   }
 
   const handleSave = async (activity: Activity) => {
@@ -122,6 +164,7 @@ export default function ActivitiesTable({
                 <TableHead>Duración Estimada</TableHead>
                 <TableHead>Inicio</TableHead>
                 <TableHead>Fin</TableHead>
+                <TableHead>Documento</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -173,6 +216,61 @@ export default function ActivitiesTable({
                     </TableCell>
                     <TableCell>
                       {format(end, 'dd MMM yyyy', { locale: es })}
+                    </TableCell>
+                    <TableCell>
+                      {isEditingDoc === activity.project_activity_id ? (
+                        <div className="space-y-1">
+                          <Input
+                            placeholder="URL del documento"
+                            value={editDocUrl}
+                            onChange={(e) => setEditDocUrl(e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            placeholder="Nombre del documento"
+                            value={editDocName}
+                            onChange={(e) => setEditDocName(e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => handleSaveDocument(activity)}
+                            className="h-7 text-xs w-full"
+                          >
+                            Guardar
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          {activity.sharepoint_document_url ? (
+                            <>
+                              <SharePointViewer
+                                documentUrl={activity.sharepoint_document_url}
+                                documentName={activity.document_name}
+                              />
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditDocument(activity)}
+                                className="h-8"
+                              >
+                                Editar
+                              </Button>
+                            </>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditDocument(activity)}
+                              className="gap-1"
+                            >
+                              <Link2 className="w-3 h-3" />
+                              Vincular
+                            </Button>
+                          )}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       {isEditing ? (
