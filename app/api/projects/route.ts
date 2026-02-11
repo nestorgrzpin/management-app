@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
       adjudication_type,
       estimated_execution_date,
       user_id,
+      user_email,
     } = await request.json()
 
     console.log('[v0] Creating project with data:', {
@@ -45,6 +46,29 @@ export async function POST(request: NextRequest) {
       estimated_execution_date,
       user_id,
     })
+
+    // Ensure user exists in users table
+    const { data: existingUser, error: checkError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('id', user_id)
+      .single()
+
+    if (checkError || !existingUser) {
+      console.log('[v0] User not in users table, creating entry...')
+      const { error: userInsertError } = await supabase
+        .from('users')
+        .insert({
+          id: user_id,
+          email: user_email,
+          role: 'analyst',
+        })
+
+      if (userInsertError) {
+        console.error('[v0] Error creating user entry:', userInsertError)
+        // Continue anyway - might already exist
+      }
+    }
 
     // Create project
     const { data: project, error } = await supabase

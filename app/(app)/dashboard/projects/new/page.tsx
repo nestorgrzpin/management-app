@@ -69,6 +69,7 @@ export default function NewProjectPage() {
         body: JSON.stringify({
           ...formData,
           user_id: session.user.id,
+          user_email: session.user.email,
         }),
       })
 
