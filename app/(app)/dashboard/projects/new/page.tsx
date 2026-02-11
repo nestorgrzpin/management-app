@@ -50,9 +50,18 @@ export default function NewProjectPage() {
       } = await supabase.auth.getSession()
 
       if (!session) {
+        toast.error('Sesión expirada. Por favor inicia sesión de nuevo.')
         router.push('/login')
         return
       }
+
+      if (!formData.name || !formData.client || !formData.start_date || !formData.execution_date || !formData.estimated_amount) {
+        toast.error('Por favor completa todos los campos requeridos.')
+        setLoading(false)
+        return
+      }
+
+      console.log('[v0] Submitting project with user_id:', session.user.id)
 
       const response = await fetch('/api/projects', {
         method: 'POST',
@@ -63,15 +72,23 @@ export default function NewProjectPage() {
         }),
       })
 
+      console.log('[v0] Response status:', response.status)
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error('Error al crear proyecto')
+        const errorMessage = data.error || 'Error desconocido al crear proyecto'
+        console.error('[v0] API error:', errorMessage)
+        toast.error(`Error: ${errorMessage}`)
+        return
       }
 
-      const project = await response.json()
+      console.log('[v0] Project created successfully:', data)
       toast.success('¡Proyecto creado exitosamente!')
-      router.push(`/dashboard/projects/${project.id}`)
+      router.push(`/dashboard/projects/${data.id}`)
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al crear proyecto')
+      const errorMessage = error instanceof Error ? error.message : 'Error al crear proyecto'
+      console.error('[v0] Exception:', error)
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }

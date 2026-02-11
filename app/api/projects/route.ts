@@ -1,13 +1,31 @@
-import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+async function getSupabaseServer() {
+  const cookieStore = await cookies()
+
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options)
+          })
+        },
+      },
+    }
+  )
+}
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await getSupabaseServer()
     const {
       name,
       client,
@@ -17,6 +35,16 @@ export async function POST(request: NextRequest) {
       execution_date,
       user_id,
     } = await request.json()
+
+    console.log('[v0] Creating project with data:', {
+      name,
+      client,
+      start_date,
+      estimated_amount,
+      procurement_type,
+      execution_date,
+      user_id,
+    })
 
     // Create project
     const { data: project, error } = await supabase
@@ -35,14 +63,21 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
+      console.error('[v0] Error creating project:', error)
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
+    console.log('[v0] Project created:', project)
+
     // Clone template activities
-    const { data: templateActivities } = await supabase
+    const { data: templateActivities, error: templateError } = await supabase
       .from('template_activities')
       .select('*')
       .order('code', { ascending: true })
+
+    if (templateError) {
+      console.error('[v0] Error fetching templates:', templateError)
+    }
 
     if (templateActivities && templateActivities.length > 0) {
       const activitiesToInsert = templateActivities.map((template: any) => ({
@@ -54,13 +89,23 @@ export async function POST(request: NextRequest) {
         duration_days: template.duration_days,
       }))
 
-      await supabase.from('project_activities').insert(activitiesToInsert)
+      const { error: insertError } = await supabase
+        .from('project_activities')
+        .insert(activitiesToInsert)
+
+      if (insertError) {
+        console.error('[v0] Error inserting activities:', insertError)
+      }
     }
 
     return NextResponse.json(project)
   } catch (error) {
+    console.error('[v0] Unexpected error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error:
+          error instanceof Error ? error.message : 'Error interno del servidor',
+      },
       { status: 500 }
     )
   }
@@ -68,8 +113,11 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = await getSupabaseServer()
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('user_id')
+
+    console.log('[v0] Fetching projects for user:', userId)
 
     const { data, error } = await supabase
       .from('projects')
@@ -78,13 +126,19 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
 
     if (error) {
+      console.error('[v0] Error fetching projects:', error)
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
-    return NextResponse.json(data)
+    console.log('[v0] Projects fetched:', data?.length || 0)
+    return NextResponse.json(data || [])
   } catch (error) {
+    console.error('[v0] Unexpected error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error:
+          error instanceof Error ? error.message : 'Error interno del servidor',
+      },
       { status: 500 }
     )
   }
