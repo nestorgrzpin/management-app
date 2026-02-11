@@ -44,13 +44,16 @@ export default function ProjectDetailPage() {
 
         if (projectData) {
           setProject(projectData)
+          console.log('[v0] Project loaded:', projectData.id)
 
           // Load activities
-          const { data: activitiesData } = await supabase
-            .from('project_activities')
+          const { data: activitiesData, error: activitiesError } = await supabase
+            .from('activities')
             .select('*')
             .eq('project_id', projectId)
             .order('code', { ascending: true })
+
+          console.log('[v0] Activities loaded:', activitiesData?.length || 0, activitiesError)
 
           if (activitiesData) {
             setActivities(activitiesData)
@@ -193,7 +196,7 @@ export default function ProjectDetailPage() {
             onActivitiesChange={() => {
               // Reload activities
               supabase
-                .from('project_activities')
+                .from('activities')
                 .select('*')
                 .eq('project_id', projectId)
                 .order('code', { ascending: true })
