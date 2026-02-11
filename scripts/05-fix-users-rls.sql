@@ -1,7 +1,7 @@
--- Disable RLS for users table temporarily to allow server operations
+-- Disable RLS for users table to allow server API operations
 ALTER TABLE users DISABLE ROW LEVEL SECURITY;
 
--- Or create a policy that allows authenticated users and service role
+-- Re-enable RLS and create proper policies
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
 -- Allow service role (via API) to manage users
@@ -9,10 +9,7 @@ CREATE POLICY "Service role can manage users"
   ON users
   FOR ALL
   USING (true)
-  WITH CHECK (true)
-  AS PERMISSIVE
-  FOR ALL
-  TO service_role;
+  WITH CHECK (true);
 
 -- Allow users to read their own profile
 CREATE POLICY "Users can read their own profile"
