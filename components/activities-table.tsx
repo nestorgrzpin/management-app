@@ -1,8 +1,8 @@
 'use client'
 
+import React, { useState } from 'react'
 import { Card } from "@/components/ui/card"
 import { CardContent } from "@/components/ui/card"
-import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import {
   Table,
@@ -59,6 +59,11 @@ export default function ActivitiesTable({
   const [docModalActivity, setDocModalActivity] = useState<Activity | null>(null)
   const [localActivities, setLocalActivities] = useState(activities)
   const supabase = createClient()
+
+  // Update local activities when props change
+  React.useEffect(() => {
+    setLocalActivities(activities)
+  }, [activities])
 
   const isSubactivity = (code: string) => code.split('.').length === 3
 
@@ -191,7 +196,7 @@ export default function ActivitiesTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {activities.map((activity, index) => {
+              {localActivities.map((activity, index) => {
                 const isSubact = isSubactivity(activity.code)
                 const level = getActivityLevel(activity.code)
                 const { start, end, duration } = calculateDates(activity, index)
