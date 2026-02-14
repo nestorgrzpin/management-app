@@ -3,7 +3,6 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
-import { MicrosoftProvider } from '@/components/microsoft-provider'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -40,9 +39,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`font-sans antialiased`}>
-        <MicrosoftProvider>
-          {children}
-        </MicrosoftProvider>
+        {children}
         <Toaster />
         <Analytics />
       </body>
