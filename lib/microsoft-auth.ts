@@ -1,24 +1,40 @@
-import { PublicClientApplication } from '@azure/msal-browser'
+'use client'
 
-const getSiteUrl = () => {
-  if (typeof window !== 'undefined') {
-    return window.location.origin
+import { getSiteUrl } from './get-site-url'
+
+let msalInstance: any = null
+
+// Lazy load MSAL to avoid module not found errors during build
+const initMSAL = async () => {
+  if (msalInstance) return msalInstance
+
+  try {
+    const msalBrowser = await import('@azure/msal-browser')
+    const { PublicClientApplication } = msalBrowser
+
+    const msalConfig = {
+      auth: {
+        clientId: process.env.NEXT_PUBLIC_AZURE_CLIENT_ID!,
+        authority: `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_AZURE_TENANT_ID}`,
+        redirectUri: `${getSiteUrl()}/auth/microsoft/callback`,
+      },
+      cache: {
+        cacheLocation: 'localStorage' as const,
+      },
+    }
+
+    msalInstance = new PublicClientApplication(msalConfig)
+    console.log('[v0] MSAL initialized')
+    return msalInstance
+  } catch (error) {
+    console.error('[v0] Error initializing MSAL:', error)
+    return null
   }
-  return process.env.NEXT_PUBLIC_SITE_URL || 'https://localhost:3000'
 }
 
-const msalConfig = {
-  auth: {
-    clientId: process.env.NEXT_PUBLIC_AZURE_CLIENT_ID!,
-    authority: `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_AZURE_TENANT_ID}`,
-    redirectUri: `${getSiteUrl()}/auth/microsoft/callback`,
-  },
-  cache: {
-    cacheLocation: 'localStorage' as const,
-  },
+export const getMsalInstance = async () => {
+  return initMSAL()
 }
-
-export const msalInstance = new PublicClientApplication(msalConfig)
 
 export const loginRequest = {
   scopes: [
@@ -30,15 +46,21 @@ export const loginRequest = {
 
 export const getAccessToken = async () => {
   try {
-    const accounts = msalInstance.getAllAccounts()
+    const instance = await getMsalInstance()
+    if (!instance) {
+      console.error('[v0] MSAL not initialized')
+      return null
+    }
+
+    const accounts = instance.getAllAccounts()
     if (accounts.length === 0) {
       console.log('[v0] No accounts found, redirecting to login')
-      await msalInstance.loginPopup(loginRequest)
+      await instance.loginPopup(loginRequest)
       return null
     }
 
     const account = accounts[0]
-    const response = await msalInstance.acquireTokenSilent({
+    const response = await instance.acquireTokenSilent({
       scopes: loginRequest.scopes,
       account,
     })

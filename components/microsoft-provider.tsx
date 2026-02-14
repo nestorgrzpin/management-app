@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode, useEffect, useState } from 'react'
-import { msalInstance } from '@/lib/microsoft-auth'
+import { getMsalInstance } from '@/lib/microsoft-auth'
 
 export function MicrosoftProvider({ children }: { children: ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false)
@@ -9,8 +9,11 @@ export function MicrosoftProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initialize = async () => {
       try {
-        await msalInstance.initialize()
-        console.log('[v0] MSAL initialized')
+        const msalInstance = await getMsalInstance()
+        if (msalInstance) {
+          await msalInstance.initialize()
+          console.log('[v0] MSAL initialized')
+        }
         setIsInitialized(true)
       } catch (error) {
         console.error('[v0] Error initializing MSAL:', error)

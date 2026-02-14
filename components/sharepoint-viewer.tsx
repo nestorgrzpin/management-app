@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { FileText, ExternalLink, LogIn } from 'lucide-react'
-import { msalInstance, loginRequest } from '@/lib/microsoft-auth'
+import { getMsalInstance, loginRequest } from '@/lib/microsoft-auth'
 
 interface SharePointViewerProps {
   documentUrl?: string | null
@@ -23,19 +23,25 @@ export default function SharePointViewer({ documentUrl, documentName }: SharePoi
 
   const checkAuthentication = async () => {
     try {
+      const msalInstance = await getMsalInstance()
+      if (!msalInstance) return
+
       const accounts = msalInstance.getAllAccounts()
       if (accounts.length > 0) {
         console.log('[v0] User already authenticated')
         setIsAuthenticated(true)
-        await getAccessToken()
+        await getAccessTokenHelper()
       }
     } catch (error) {
       console.error('[v0] Error checking authentication:', error)
     }
   }
 
-  const getAccessToken = async () => {
+  const getAccessTokenHelper = async () => {
     try {
+      const msalInstance = await getMsalInstance()
+      if (!msalInstance) return null
+
       const accounts = msalInstance.getAllAccounts()
       if (accounts.length === 0) {
         return null
@@ -48,6 +54,33 @@ export default function SharePointViewer({ documentUrl, documentName }: SharePoi
       })
 
       console.log('[v0] Access token acquired')
+      setAccessToken(response.accessToken)
+      return response.accessToken
+    } catch (error) {
+      console.error('[v0] Error acquiring token:', error)
+      return null
+    }
+  }
+
+  const handleLogin = async () => {
+    setIsLoading(true)
+    try {
+      const msalInstance = await getMsalInstance()
+      if (!msalInstance) {
+        console.error('[v0] MSAL not initialized')
+        return
+      }
+
+      const response = await msalInstance.loginPopup(loginRequest)
+      console.log('[v0] User logged in:', response.account?.username)
+      setIsAuthenticated(true)
+      await getAccessTokenHelper()
+    } catch (error) {
+      console.error('[v0] Login error:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
       setAccessToken(response.accessToken)
       return response.accessToken
     } catch (error) {
