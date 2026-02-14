@@ -196,7 +196,7 @@ export default function ActivitiesTable({
                 const isEditing = editingId === activity.id
 
                 return (
-                  <React.Fragment key={activity.id}>
+                  <div key={activity.id} style={{ display: 'contents' }}>
                     <TableRow
                       className={isSubact ? 'bg-blue-50' : ''}
                     >
@@ -341,7 +341,7 @@ export default function ActivitiesTable({
                         </TableCell>
                       </TableRow>
                     )}
-                  </React.Fragment>
+                  </div>
                 )
               })}
             </TableBody>
