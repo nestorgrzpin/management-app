@@ -20,7 +20,6 @@ import { Edit2, Save, Link2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { addDays, parseISO, format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import SharePointViewer from './sharepoint-viewer'
 
 interface Activity {
   id: string
@@ -245,10 +244,14 @@ export default function ActivitiesTable({
                         <div className="flex items-center gap-2">
                           {activity.sharepoint_document_url ? (
                             <>
-                              <SharePointViewer
-                                documentUrl={activity.sharepoint_document_url}
-                                documentName={activity.document_name}
-                              />
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => window.open(activity.sharepoint_document_url, '_blank')}
+                                className="bg-transparent"
+                              >
+                                Ver documento
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
