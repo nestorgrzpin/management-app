@@ -55,6 +55,8 @@ export default function ActivitiesTable({
   const [editDocUrl, setEditDocUrl] = useState<string>('')
   const [editDocName, setEditDocName] = useState<string>('')
   const [isEditingDoc, setIsEditingDoc] = useState<string | null>(null)
+  const [expandedDoc, setExpandedDoc] = useState<string | null>(null)
+  const [localActivities, setLocalActivities] = useState(activities)
   const supabase = createClient()
 
   const isSubactivity = (code: string) => code.split('.').length === 3
@@ -93,6 +95,7 @@ export default function ActivitiesTable({
   }
 
   const handleEditDocument = (activity: Activity) => {
+    setExpandedDoc(activity.project_activity_id || null)
     setIsEditingDoc(activity.project_activity_id || null)
     setEditDocUrl(activity.sharepoint_document_url || '')
     setEditDocName(activity.document_name || '')
@@ -121,11 +124,26 @@ export default function ActivitiesTable({
 
       toast.success('Documento vinculado exitosamente')
       setIsEditingDoc(null)
+      
+      // Update local state immediately
+      const updatedActivities = localActivities.map(a => 
+        a.project_activity_id === activity.project_activity_id 
+          ? { ...a, sharepoint_document_url: editDocUrl, document_name: editDocName }
+          : a
+      )
+      setLocalActivities(updatedActivities)
+      
       onActivitiesChange()
     } catch (error) {
       console.error('[v0] Error:', error)
       toast.error('Error al guardar el documento')
     }
+  }
+
+  const handleCancelDocument = () => {
+    setIsEditingDoc(null)
+    setEditDocUrl('')
+    setEditDocName('')
   }
 
   const handleSave = async (activity: Activity) => {
@@ -178,123 +196,153 @@ export default function ActivitiesTable({
                 const isEditing = editingId === activity.id
 
                 return (
-                  <TableRow
-                    key={activity.id}
-                    className={isSubact ? 'bg-blue-50' : ''}
-                  >
-                    <TableCell className="font-mono font-semibold text-blue-600">
-                      {activity.code}
-                    </TableCell>
-                    <TableCell className={isSubact ? 'pl-8' : ''}>
-                      {activity.name}
-                    </TableCell>
-                    <TableCell>
-                      {isEditing ? (
-                        <div className="flex gap-1">
-                          <Input
-                            type="number"
-                            value={editValue}
-                            onChange={(e) => setEditValue(Number(e.target.value))}
-                            placeholder="Valor"
-                            className="w-16 h-8"
-                          />
-                          <select
-                            value={editUnit}
-                            onChange={(e) => setEditUnit(e.target.value as 'hours' | 'days')}
-                            className="px-2 h-8 text-sm border rounded"
+                  <>
+                    <TableRow
+                      key={activity.id}
+                      className={isSubact ? 'bg-blue-50' : ''}
+                    >
+                      <TableCell className="font-mono font-semibold text-blue-600">
+                        {activity.code}
+                      </TableCell>
+                      <TableCell className={isSubact ? 'pl-8' : ''}>
+                        {activity.name}
+                      </TableCell>
+                      <TableCell>
+                        {isEditing ? (
+                          <div className="flex gap-1">
+                            <Input
+                              type="number"
+                              value={editValue}
+                              onChange={(e) => setEditValue(Number(e.target.value))}
+                              placeholder="Valor"
+                              className="w-16 h-8"
+                            />
+                            <select
+                              value={editUnit}
+                              onChange={(e) => setEditUnit(e.target.value as 'hours' | 'days')}
+                              className="px-2 h-8 text-sm border rounded"
+                            >
+                              <option value="hours">Horas</option>
+                              <option value="days">Días</option>
+                            </select>
+                          </div>
+                        ) : (
+                          <span>
+                            {activity.base_duration_value} {activity.base_duration_unit === 'hours' ? 'hrs' : 'días'}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {format(start, 'dd MMM yyyy', { locale: es })}
+                      </TableCell>
+                      <TableCell>
+                        {format(end, 'dd MMM yyyy', { locale: es })}
+                      </TableCell>
+                      <TableCell>
+                        {activity.sharepoint_document_url ? (
+                          <div className="flex items-center gap-2">
+                            <SharePointViewer
+                              documentUrl={activity.sharepoint_document_url}
+                              documentName={activity.document_name}
+                            />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEditDocument(activity)}
+                              className="h-8 text-xs"
+                            >
+                              Editar
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditDocument(activity)}
+                            className="gap-1"
                           >
-                            <option value="hours">Horas</option>
-                            <option value="days">Días</option>
-                          </select>
-                        </div>
-                      ) : (
-                        <span>
-                          {activity.base_duration_value} {activity.base_duration_unit === 'hours' ? 'hrs' : 'días'}
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {format(start, 'dd MMM yyyy', { locale: es })}
-                    </TableCell>
-                    <TableCell>
-                      {format(end, 'dd MMM yyyy', { locale: es })}
-                    </TableCell>
-                    <TableCell>
-                      {isEditingDoc === activity.project_activity_id ? (
-                        <div className="space-y-1">
-                          <Input
-                            placeholder="URL del documento"
-                            value={editDocUrl}
-                            onChange={(e) => setEditDocUrl(e.target.value)}
-                            className="h-8 text-xs"
-                          />
-                          <Input
-                            placeholder="Nombre del documento"
-                            value={editDocName}
-                            onChange={(e) => setEditDocName(e.target.value)}
-                            className="h-8 text-xs"
-                          />
+                            <Link2 className="w-3 h-3" />
+                            Vincular
+                          </Button>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {isEditing ? (
                           <Button
                             size="sm"
                             variant="default"
-                            onClick={() => handleSaveDocument(activity)}
-                            className="h-7 text-xs w-full"
+                            onClick={() => handleSave(activity)}
                           >
+                            <Save className="w-4 h-4 mr-1" />
                             Guardar
                           </Button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          {activity.sharepoint_document_url ? (
-                            <>
-                              <SharePointViewer
-                                documentUrl={activity.sharepoint_document_url}
-                                documentName={activity.document_name}
-                              />
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEditDocument(activity)}
-                                className="h-8"
-                              >
-                                Editar
-                              </Button>
-                            </>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditDocument(activity)}
-                              className="gap-1"
-                            >
-                              <Link2 className="w-3 h-3" />
-                              Vincular
-                            </Button>
-                          )}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {isEditing ? (
-                        <Button
-                          size="sm"
-                          variant="default"
-                          onClick={() => handleSave(activity)}
-                        >
-                          <Save className="w-4 h-4 mr-1" />
-                          Guardar
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEdit(activity)}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEdit(activity)}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                    
+                    {expandedDoc === activity.project_activity_id && (
+                      <TableRow className="bg-gray-50 hover:bg-gray-50">
+                        <TableCell colSpan={7} className="p-4">
+                          <div className="bg-white border border-gray-200 rounded-lg p-4">
+                            <h4 className="font-semibold text-sm mb-3">Vincular Documento de SharePoint</h4>
+                            <div className="space-y-3">
+                              <div>
+                                <Label htmlFor="doc-url" className="text-sm mb-1 block">
+                                  URL del Documento
+                                </Label>
+                                <Input
+                                  id="doc-url"
+                                  placeholder="Ejemplo: https://tuorganizacion.sharepoint.com/sites/..."
+                                  value={editDocUrl}
+                                  onChange={(e) => setEditDocUrl(e.target.value)}
+                                  className="w-full"
+                                />
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="doc-name" className="text-sm mb-1 block">
+                                  Nombre del Documento
+                                </Label>
+                                <Input
+                                  id="doc-name"
+                                  placeholder="Ejemplo: Especificaciones técnicas"
+                                  value={editDocName}
+                                  onChange={(e) => setEditDocName(e.target.value)}
+                                  className="w-full"
+                                />
+                              </div>
+                              
+                              <div className="flex gap-2 justify-end">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={handleCancelDocument}
+                                >
+                                  Cancelar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="default"
+                                  onClick={() => handleSaveDocument(activity)}
+                                >
+                                  <Save className="w-4 h-4 mr-1" />
+                                  Guardar Documento
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
                 )
               })}
             </TableBody>
