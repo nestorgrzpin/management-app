@@ -1,13 +1,20 @@
 import { PublicClientApplication } from '@azure/msal-browser'
 
+const getSiteUrl = () => {
+  if (typeof window !== 'undefined') {
+    return window.location.origin
+  }
+  return process.env.NEXT_PUBLIC_SITE_URL || 'https://localhost:3000'
+}
+
 const msalConfig = {
   auth: {
     clientId: process.env.NEXT_PUBLIC_AZURE_CLIENT_ID!,
     authority: `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_AZURE_TENANT_ID}`,
-    redirectUri: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/microsoft/callback`,
+    redirectUri: `${getSiteUrl()}/auth/microsoft/callback`,
   },
   cache: {
-    cacheLocation: 'localStorage',
+    cacheLocation: 'localStorage' as const,
   },
 }
 
