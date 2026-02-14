@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Edit2, Save, Link2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { addDays, parseISO, format } from 'date-fns'
@@ -54,8 +55,8 @@ export default function ActivitiesTable({
   const [editUnit, setEditUnit] = useState<'hours' | 'days'>('hours')
   const [editDocUrl, setEditDocUrl] = useState<string>('')
   const [editDocName, setEditDocName] = useState<string>('')
-  const [isEditingDoc, setIsEditingDoc] = useState<string | null>(null)
-  const [expandedDoc, setExpandedDoc] = useState<string | null>(null)
+  const [isDocModalOpen, setIsDocModalOpen] = useState(false)
+  const [docModalActivity, setDocModalActivity] = useState<Activity | null>(null)
   const [localActivities, setLocalActivities] = useState(activities)
   const supabase = createClient()
 
@@ -95,15 +96,15 @@ export default function ActivitiesTable({
   }
 
   const handleEditDocument = (activity: Activity) => {
-    setExpandedDoc(activity.project_activity_id || null)
-    setIsEditingDoc(activity.project_activity_id || null)
+    setDocModalActivity(activity)
+    setIsDocModalOpen(true)
     setEditDocUrl(activity.sharepoint_document_url || '')
     setEditDocName(activity.document_name || '')
   }
 
-  const handleSaveDocument = async (activity: Activity) => {
+  const handleSaveDocument = async () => {
     try {
-      if (!editDocUrl) {
+      if (!editDocUrl || !docModalActivity) {
         toast.error('Por favor ingresa una URL de documento')
         return
       }
@@ -114,7 +115,7 @@ export default function ActivitiesTable({
           sharepoint_document_url: editDocUrl,
           document_name: editDocName || 'Documento',
         })
-        .eq('id', activity.project_activity_id)
+        .eq('id', docModalActivity.project_activity_id)
 
       if (error) {
         console.error('[v0] Error updating document:', error)
@@ -123,16 +124,16 @@ export default function ActivitiesTable({
       }
 
       toast.success('Documento vinculado exitosamente')
-      setIsEditingDoc(null)
       
       // Update local state immediately
       const updatedActivities = localActivities.map(a => 
-        a.project_activity_id === activity.project_activity_id 
+        a.project_activity_id === docModalActivity.project_activity_id 
           ? { ...a, sharepoint_document_url: editDocUrl, document_name: editDocName }
           : a
       )
       setLocalActivities(updatedActivities)
       
+      setIsDocModalOpen(false)
       onActivitiesChange()
     } catch (error) {
       console.error('[v0] Error:', error)
@@ -140,8 +141,9 @@ export default function ActivitiesTable({
     }
   }
 
-  const handleCancelDocument = () => {
-    setIsEditingDoc(null)
+  const handleCloseDocModal = () => {
+    setIsDocModalOpen(false)
+    setDocModalActivity(null)
     setEditDocUrl('')
     setEditDocName('')
   }
@@ -196,10 +198,10 @@ export default function ActivitiesTable({
                 const isEditing = editingId === activity.id
 
                 return (
-                  <div key={activity.id} style={{ display: 'contents' }}>
-                    <TableRow
-                      className={isSubact ? 'bg-blue-50' : ''}
-                    >
+                  <TableRow
+                    key={activity.id}
+                    className={isSubact ? 'bg-blue-50' : ''}
+                  >
                       <TableCell className="font-mono font-semibold text-blue-600">
                         {activity.code}
                       </TableCell>
@@ -286,68 +288,70 @@ export default function ActivitiesTable({
                         )}
                       </TableCell>
                     </TableRow>
-                    
-                    {expandedDoc === activity.project_activity_id && (
-                      <TableRow className="bg-gray-50 hover:bg-gray-50">
-                        <TableCell colSpan={7} className="p-4">
-                          <div className="bg-white border border-gray-200 rounded-lg p-4">
-                            <h4 className="font-semibold text-sm mb-3">Vincular Documento de SharePoint</h4>
-                            <div className="space-y-3">
-                              <div>
-                                <Label htmlFor="doc-url" className="text-sm mb-1 block">
-                                  URL del Documento
-                                </Label>
-                                <Input
-                                  id="doc-url"
-                                  placeholder="Ejemplo: https://tuorganizacion.sharepoint.com/sites/..."
-                                  value={editDocUrl}
-                                  onChange={(e) => setEditDocUrl(e.target.value)}
-                                  className="w-full"
-                                />
-                              </div>
-                              
-                              <div>
-                                <Label htmlFor="doc-name" className="text-sm mb-1 block">
-                                  Nombre del Documento
-                                </Label>
-                                <Input
-                                  id="doc-name"
-                                  placeholder="Ejemplo: Especificaciones técnicas"
-                                  value={editDocName}
-                                  onChange={(e) => setEditDocName(e.target.value)}
-                                  className="w-full"
-                                />
-                              </div>
-                              
-                              <div className="flex gap-2 justify-end">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={handleCancelDocument}
-                                >
-                                  Cancelar
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="default"
-                                  onClick={() => handleSaveDocument(activity)}
-                                >
-                                  <Save className="w-4 h-4 mr-1" />
-                                  Guardar Documento
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </div>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+
+        {/* Document Edit Modal */}
+        <Dialog open={isDocModalOpen} onOpenChange={setIsDocModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                Vincular Documento de SharePoint
+                {docModalActivity && <div className="text-sm text-gray-500 font-normal mt-1">{docModalActivity.name}</div>}
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="doc-url" className="text-sm mb-2 block">
+                  URL del Documento
+                </Label>
+                <Input
+                  id="doc-url"
+                  placeholder="https://tuorganizacion.sharepoint.com/sites/..."
+                  value={editDocUrl}
+                  onChange={(e) => setEditDocUrl(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="doc-name" className="text-sm mb-2 block">
+                  Nombre del Documento
+                </Label>
+                <Input
+                  id="doc-name"
+                  placeholder="Ejemplo: Especificaciones técnicas"
+                  value={editDocName}
+                  onChange={(e) => setEditDocName(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              
+              <div className="flex gap-2 justify-end pt-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCloseDocModal}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={handleSaveDocument}
+                >
+                  <Save className="w-4 h-4 mr-1" />
+                  Guardar Documento
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
     </Card>
   )
 }
