@@ -114,6 +114,13 @@ export default function ActivitiesTable({
         return
       }
 
+      console.log('[v0] Saving document for activity:', {
+        project_activity_id: docModalActivity.project_activity_id,
+        id: docModalActivity.id,
+        url: editDocUrl,
+        name: editDocName,
+      })
+
       const { error } = await supabase
         .from('project_activities')
         .update({
@@ -128,6 +135,7 @@ export default function ActivitiesTable({
         return
       }
 
+      console.log('[v0] Document saved successfully')
       toast.success('Documento vinculado exitosamente')
       
       // Update local state immediately
@@ -136,8 +144,14 @@ export default function ActivitiesTable({
           ? { ...a, sharepoint_document_url: editDocUrl, document_name: editDocName }
           : a
       )
-      setLocalActivities(updatedActivities)
       
+      console.log('[v0] Updated activities:', {
+        before: localActivities.length,
+        after: updatedActivities.length,
+        changed: updatedActivities.some(a => a.sharepoint_document_url === editDocUrl)
+      })
+      
+      setLocalActivities(updatedActivities)
       setIsDocModalOpen(false)
       onActivitiesChange()
     } catch (error) {
