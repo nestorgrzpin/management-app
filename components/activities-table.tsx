@@ -371,6 +371,7 @@ export default function ActivitiesTable({
             </div>
           </DialogContent>
         </Dialog>
-    </Card>
-  )
-}
+      </Card>
+    )
+  }
+
