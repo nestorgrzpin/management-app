@@ -12,7 +12,7 @@ import { ArrowLeft, Edit2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import GanttChart from '@/components/gantt-chart'
-import ActivitiesTable from '@/components/activities-table'
+// import ActivitiesTable from '@/components/activities-table'
 
 export default function ProjectDetailPage() {
   const [project, setProject] = useState<any>(null)
