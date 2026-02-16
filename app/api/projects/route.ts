@@ -159,7 +159,6 @@ export async function GET(request: NextRequest) {
     }
 
     console.log('[v0] Projects fetched:', data?.length || 0)
-    console.log('[v0] First project data:', data?.[0])
     return NextResponse.json(data || [])
   } catch (error) {
     console.error('[v0] Unexpected error:', error)

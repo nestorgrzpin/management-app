@@ -32,11 +32,7 @@ export default function DashboardPage() {
         const response = await fetch(`/api/projects?user_id=${session.user.id}`)
         const data = await response.json()
         
-        console.log('[v0] Projects loaded from API:', data)
-        
         if (Array.isArray(data)) {
-          console.log('[v0] First project ingresos_maximo:', data[0]?.ingresos_maximo, 'Type:', typeof data[0]?.ingresos_maximo)
-          console.log('[v0] First project full:', JSON.stringify(data[0]))
           setProjects(data)
         } else {
           console.error('[v0] API response is not an array:', data)
