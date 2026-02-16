@@ -25,7 +25,7 @@ export default function NewProjectPage() {
     name: '',
     client: '',
     start_date: new Date().toISOString().split('T')[0],
-    estimated_amount: '',
+    ingresos_maximo: '',
     adjudication_type: 'direct',
     estimated_execution_date: '',
   })
@@ -55,7 +55,7 @@ export default function NewProjectPage() {
         return
       }
 
-      if (!formData.name || !formData.client || !formData.start_date || !formData.estimated_execution_date || !formData.estimated_amount) {
+      if (!formData.name || !formData.client || !formData.start_date || !formData.estimated_execution_date || !formData.ingresos_maximo) {
         toast.error('Por favor completa todos los campos requeridos.')
         setLoading(false)
         return
@@ -171,13 +171,13 @@ export default function NewProjectPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="estimated_amount">Monto Estimado ($) *</Label>
+                <Label htmlFor="ingresos_maximo">Monto Estimado ($) *</Label>
                 <Input
-                  id="estimated_amount"
-                  name="estimated_amount"
+                  id="ingresos_maximo"
+                  name="ingresos_maximo"
                   type="number"
                   placeholder="0.00"
-                  value={formData.estimated_amount}
+                  value={formData.ingresos_maximo}
                   onChange={handleChange}
                   step="0.01"
                   required

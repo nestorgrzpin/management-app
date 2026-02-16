@@ -59,7 +59,7 @@ export default function DashboardPage() {
   // Calculate column metrics
   const getColumnMetrics = (projectList: any[]) => {
     const count = projectList.length
-    const totalAmount = projectList.reduce((sum, p) => sum + (Number(p.ingresos) || 0), 0)
+    const totalAmount = projectList.reduce((sum, p) => sum + (Number(p.ingresos_maximo) || 0), 0)
     const avgUtility = projectList.length > 0 
       ? projectList.reduce((sum, p) => sum + (Number(p.utilidad_porcentaje) || 0), 0) / projectList.length
       : 0
@@ -225,7 +225,7 @@ export default function DashboardPage() {
                               {/* Financial metrics - 4 columns */}
                               <div className="grid grid-cols-4 gap-1 border-b pb-2">
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.ingresos) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.ingresos_maximo) / 1000000).toFixed(0)}m</p>
                                   <p className="text-gray-600">Ingreso</p>
                                 </div>
                                 <div className="text-center">
@@ -267,7 +267,7 @@ export default function DashboardPage() {
                               {/* Financial metrics - 4 columns */}
                               <div className="grid grid-cols-4 gap-1 border-b pb-2">
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.ingresos) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.ingresos_maximo) / 1000000).toFixed(0)}m</p>
                                   <p className="text-gray-600">Ingreso</p>
                                 </div>
                                 <div className="text-center">
@@ -325,7 +325,7 @@ export default function DashboardPage() {
                               {/* Financial metrics - 4 columns */}
                               <div className="grid grid-cols-4 gap-1 border-b pb-2">
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.ingresos) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.ingresos_maximo) / 1000000).toFixed(0)}m</p>
                                   <p className="text-gray-600">Ingreso</p>
                                 </div>
                                 <div className="text-center">

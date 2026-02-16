@@ -68,7 +68,7 @@ export default function ProjectEditPage() {
           client: formData.client,
           relacion: formData.relacion,
           empresa: formData.empresa,
-          ingresos: Number(formData.ingresos),
+          ingresos_maximo: Number(formData.ingresos_maximo),
           costo: Number(formData.costo),
           utilidad: Number(formData.utilidad),
           utilidad_porcentaje: Number(formData.utilidad_porcentaje),
@@ -87,7 +87,7 @@ export default function ProjectEditPage() {
         alert('Error al guardar el proyecto')
       } else {
         console.log('[v0] Project saved successfully')
-        router.push(`/dashboard/projects/${projectId}`)
+        router.push('/dashboard')
       }
     } catch (error) {
       console.error('[v0] Error:', error)
@@ -250,8 +250,8 @@ export default function ProjectEditPage() {
               </label>
               <Input
                 type="number"
-                value={formData.ingresos || ''}
-                onChange={(e) => handleInputChange('ingresos', e.target.value)}
+                value={formData.ingresos_maximo || ''}
+                onChange={(e) => handleInputChange('ingresos_maximo', e.target.value)}
                 placeholder="0"
               />
             </div>
