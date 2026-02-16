@@ -135,14 +135,23 @@ export default function ProjectEditPage() {
             <p className="text-gray-600">{project.name}</p>
           </div>
         </div>
-        <Button
-          onClick={handleSave}
-          disabled={saving}
-          className="gap-2"
-        >
-          <Save className="w-4 h-4" />
-          {saving ? 'Guardando...' : 'Guardar'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+            className="gap-2"
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="gap-2"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? 'Guardando...' : 'Guardar'}
+          </Button>
+        </div>
       </div>
 
       {/* Form */}
