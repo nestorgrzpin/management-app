@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('projects')
-      .select('*')
+      .select('id, name, client, start_date, estimated_execution_date, ingresos_maximo, ingresos_minimo, costo, utilidad, utilidad_porcentaje, devengado, pagado, por_cobrar, adjudication_type, status, fase, relacion, empresa, created_by, created_at, updated_at')
       .eq('created_by', userId)
       .order('created_at', { ascending: false })
 
@@ -159,6 +159,7 @@ export async function GET(request: NextRequest) {
     }
 
     console.log('[v0] Projects fetched:', data?.length || 0)
+    console.log('[v0] First project data:', data?.[0])
     return NextResponse.json(data || [])
   } catch (error) {
     console.error('[v0] Unexpected error:', error)
