@@ -35,7 +35,8 @@ export default function DashboardPage() {
         console.log('[v0] Projects loaded from API:', data)
         
         if (Array.isArray(data)) {
-          console.log('[v0] First project ingresos_maximo:', data[0]?.ingresos_maximo)
+          console.log('[v0] First project ingresos_maximo:', data[0]?.ingresos_maximo, 'Type:', typeof data[0]?.ingresos_maximo)
+          console.log('[v0] First project full:', JSON.stringify(data[0]))
           setProjects(data)
         } else {
           console.error('[v0] API response is not an array:', data)
@@ -228,19 +229,19 @@ export default function DashboardPage() {
                               {/* Financial metrics - 4 columns */}
                               <div className="grid grid-cols-4 gap-1 border-b pb-2">
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.ingresos_maximo) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${project.ingresos_maximo ? (Number(project.ingresos_maximo) / 1000000).toFixed(0) : '0'}m</p>
                                   <p className="text-gray-600">Ingreso</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.costo) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${project.costo ? (Number(project.costo) / 1000000).toFixed(0) : '0'}m</p>
                                   <p className="text-gray-600">Costo</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.utilidad) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${project.utilidad ? (Number(project.utilidad) / 1000000).toFixed(0) : '0'}m</p>
                                   <p className="text-gray-600">Utilidad</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">{Number(project.utilidad_porcentaje)}%</p>
+                                  <p className="font-bold text-gray-900 text-sm">{project.utilidad_porcentaje ? Number(project.utilidad_porcentaje) : '0'}%</p>
                                   <p className="text-gray-600">Utilidad</p>
                                 </div>
                               </div>
@@ -270,19 +271,19 @@ export default function DashboardPage() {
                               {/* Financial metrics - 4 columns */}
                               <div className="grid grid-cols-4 gap-1 border-b pb-2">
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.ingresos_maximo) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${project.ingresos_maximo ? (Number(project.ingresos_maximo) / 1000000).toFixed(0) : '0'}m</p>
                                   <p className="text-gray-600">Ingreso</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.costo) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${project.costo ? (Number(project.costo) / 1000000).toFixed(0) : '0'}m</p>
                                   <p className="text-gray-600">Costo</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.utilidad) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${project.utilidad ? (Number(project.utilidad) / 1000000).toFixed(0) : '0'}m</p>
                                   <p className="text-gray-600">Utilidad</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">{Number(project.utilidad_porcentaje)}%</p>
+                                  <p className="font-bold text-gray-900 text-sm">{project.utilidad_porcentaje ? Number(project.utilidad_porcentaje) : '0'}%</p>
                                   <p className="text-gray-600">Utilidad</p>
                                 </div>
                               </div>
@@ -290,15 +291,15 @@ export default function DashboardPage() {
                               {/* Payment metrics - 3 columns */}
                               <div className="grid grid-cols-3 gap-1 border-b pb-2">
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.devengado) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${project.devengado ? (Number(project.devengado) / 1000000).toFixed(0) : '0'}m</p>
                                   <p className="text-gray-600">Devengado</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.pagado) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${project.pagado ? (Number(project.pagado) / 1000000).toFixed(0) : '0'}m</p>
                                   <p className="text-gray-600">Pagado</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.por_cobrar) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${project.por_cobrar ? (Number(project.por_cobrar) / 1000000).toFixed(0) : '0'}m</p>
                                   <p className="text-gray-600">Por cobrar</p>
                                 </div>
                               </div>
@@ -328,19 +329,19 @@ export default function DashboardPage() {
                               {/* Financial metrics - 4 columns */}
                               <div className="grid grid-cols-4 gap-1 border-b pb-2">
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.ingresos_maximo) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${project.ingresos_maximo ? (Number(project.ingresos_maximo) / 1000000).toFixed(0) : '0'}m</p>
                                   <p className="text-gray-600">Ingreso</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.costo) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${project.costo ? (Number(project.costo) / 1000000).toFixed(0) : '0'}m</p>
                                   <p className="text-gray-600">Costo</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.utilidad) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${project.utilidad ? (Number(project.utilidad) / 1000000).toFixed(0) : '0'}m</p>
                                   <p className="text-gray-600">Utilidad</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">{Number(project.utilidad_porcentaje)}%</p>
+                                  <p className="font-bold text-gray-900 text-sm">{project.utilidad_porcentaje ? Number(project.utilidad_porcentaje) : '0'}%</p>
                                   <p className="text-gray-600">Utilidad</p>
                                 </div>
                               </div>
@@ -348,15 +349,15 @@ export default function DashboardPage() {
                               {/* Payment metrics - 3 columns */}
                               <div className="grid grid-cols-3 gap-1 border-b pb-2">
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.devengado) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${project.devengado ? (Number(project.devengado) / 1000000).toFixed(0) : '0'}m</p>
                                   <p className="text-gray-600">Devengado</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.pagado) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${project.pagado ? (Number(project.pagado) / 1000000).toFixed(0) : '0'}m</p>
                                   <p className="text-gray-600">Pagado</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.por_cobrar) / 1000000).toFixed(0)}m</p>
+                                  <p className="font-bold text-gray-900 text-sm">${project.por_cobrar ? (Number(project.por_cobrar) / 1000000).toFixed(0) : '0'}m</p>
                                   <p className="text-gray-600">Por cobrar</p>
                                 </div>
                               </div>
