@@ -19,16 +19,16 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const loadProjects = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-
-      if (!session) {
-        router.push('/login')
-        return
-      }
-
       try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+
+        if (!session) {
+          router.push('/login')
+          return
+        }
+
         const response = await fetch(`/api/projects?user_id=${session.user.id}`)
         const data = await response.json()
         
