@@ -166,7 +166,7 @@ export default function ProjectDetailPage() {
           </CardHeader>
           <CardContent>
             <p className="font-semibold">
-              ${(Number(project.ingresos_maximo) / 1).toLocaleString()}
+              ${Number(project.ingresos_maximo).toLocaleString()}
             </p>
           </CardContent>
         </Card>
