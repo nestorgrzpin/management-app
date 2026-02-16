@@ -15,11 +15,11 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [draggedProject, setDraggedProject] = useState<any>(null)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     const loadProjects = async () => {
       try {
+        const supabase = createClient()
         const {
           data: { session },
         } = await supabase.auth.getSession()
@@ -47,7 +47,7 @@ export default function DashboardPage() {
     }
 
     loadProjects()
-  }, [router, supabase])
+  }, [router])
 
   // Group projects by fase
   const groupedProjects = {
