@@ -165,116 +165,159 @@ export default function DashboardPage() {
                         <CardContent className="space-y-3">
                           {/* Show different info based on column */}
                           {config.key === 'Preparación de propuesta' && (
-                            <div className="space-y-2 text-xs">
-                              <div className="flex justify-between items-center border-b pb-2">
-                                <span className="text-gray-600">Ingresos</span>
-                                <span className="font-semibold">${Number(project.ingresos).toLocaleString()}</span>
+                            <div className="space-y-3 text-xs">
+                              {/* Title Section */}
+                              <div className="border-b pb-2 mb-2">
+                                <p className="font-bold text-gray-900">PROYECTO (METODO)</p>
+                                <p className="text-gray-600 text-xs mt-1">{project.client} – {project.relacion} - {project.empresa}</p>
                               </div>
-                              <div className="flex justify-between items-center border-b pb-2">
-                                <span className="text-gray-600">Costo</span>
-                                <span className="font-semibold">${Number(project.costo).toLocaleString()}</span>
+
+                              {/* Financial metrics - 4 columns */}
+                              <div className="grid grid-cols-4 gap-1 border-b pb-2">
+                                <div className="text-center">
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.ingresos) / 1000000).toFixed(0)}m</p>
+                                  <p className="text-gray-600">Ingreso</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.costo) / 1000000).toFixed(0)}m</p>
+                                  <p className="text-gray-600">Costo</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.utilidad) / 1000000).toFixed(0)}m</p>
+                                  <p className="text-gray-600">Utilidad</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="font-bold text-gray-900 text-sm">{Number(project.utilidad_porcentaje)}%</p>
+                                  <p className="text-gray-600">Utilidad</p>
+                                </div>
                               </div>
-                              <div className="flex justify-between items-center border-b pb-2">
-                                <span className="text-gray-600">Utilidad</span>
-                                <span className="font-semibold">${Number(project.utilidad).toLocaleString()}</span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <span className="text-gray-600">Utilidad %</span>
-                                <span className="font-semibold">{Number(project.utilidad_porcentaje)}%</span>
-                              </div>
-                              <div className="flex justify-between items-center border-t pt-2 text-gray-700">
-                                <span className="font-medium">Inicio:</span>
-                                <span>{format(new Date(project.start_date), 'dd/MM/yyyy', { locale: es })}</span>
-                              </div>
-                              <div className="flex justify-between items-center text-gray-700">
-                                <span className="font-medium">Fin:</span>
-                                <span>{format(new Date(project.estimated_execution_date), 'dd/MM/yyyy', { locale: es })}</span>
+
+                              {/* Dates */}
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <p className="font-semibold text-gray-900">{format(new Date(project.start_date), 'dd/MM/yyyy', { locale: es })}</p>
+                                  <p className="text-gray-600">Fecha de inicio</p>
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-gray-900">{format(new Date(project.estimated_execution_date), 'dd/MM/yyyy', { locale: es })}</p>
+                                  <p className="text-gray-600">Fecha de fin</p>
+                                </div>
                               </div>
                             </div>
                           )}
 
                           {config.key === 'Adjudicación y ejecución' && (
-                            <div className="space-y-2 text-xs">
-                              <div className="flex justify-between items-center border-b pb-2">
-                                <span className="text-gray-600">Ingresos</span>
-                                <span className="font-semibold">${Number(project.ingresos).toLocaleString()}</span>
+                            <div className="space-y-3 text-xs">
+                              {/* Title Section */}
+                              <div className="border-b pb-2 mb-2">
+                                <p className="font-bold text-gray-900">PROYECTO (METODO)</p>
+                                <p className="text-gray-600 text-xs mt-1">{project.client} – {project.relacion} - {project.empresa}</p>
                               </div>
-                              <div className="flex justify-between items-center border-b pb-2">
-                                <span className="text-gray-600">Costo</span>
-                                <span className="font-semibold">${Number(project.costo).toLocaleString()}</span>
-                              </div>
-                              <div className="flex justify-between items-center border-b pb-2">
-                                <span className="text-gray-600">Utilidad</span>
-                                <span className="font-semibold">${Number(project.utilidad).toLocaleString()}</span>
-                              </div>
-                              <div className="flex justify-between items-center border-b pb-2">
-                                <span className="text-gray-600">Utilidad %</span>
-                                <span className="font-semibold">{Number(project.utilidad_porcentaje)}%</span>
-                              </div>
-                              <div className="grid grid-cols-3 gap-1 border-t pt-2 text-xs">
+
+                              {/* Financial metrics - 4 columns */}
+                              <div className="grid grid-cols-4 gap-1 border-b pb-2">
                                 <div className="text-center">
-                                  <p className="text-gray-600">${Number(project.devengado)}</p>
-                                  <p className="text-gray-500">Devengado</p>
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.ingresos) / 1000000).toFixed(0)}m</p>
+                                  <p className="text-gray-600">Ingreso</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="text-gray-600">${Number(project.pagado)}</p>
-                                  <p className="text-gray-500">Pagado</p>
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.costo) / 1000000).toFixed(0)}m</p>
+                                  <p className="text-gray-600">Costo</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="text-gray-600">${Number(project.por_cobrar)}</p>
-                                  <p className="text-gray-500">Por cobrar</p>
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.utilidad) / 1000000).toFixed(0)}m</p>
+                                  <p className="text-gray-600">Utilidad</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="font-bold text-gray-900 text-sm">{Number(project.utilidad_porcentaje)}%</p>
+                                  <p className="text-gray-600">Utilidad</p>
                                 </div>
                               </div>
-                              <div className="flex justify-between items-center border-t pt-2 text-gray-700">
-                                <span className="font-medium">Inicio:</span>
-                                <span className="text-xs">{format(new Date(project.start_date), 'dd/MM/yyyy', { locale: es })}</span>
+
+                              {/* Payment metrics - 3 columns */}
+                              <div className="grid grid-cols-3 gap-1 border-b pb-2">
+                                <div className="text-center">
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.devengado) / 1000000).toFixed(0)}m</p>
+                                  <p className="text-gray-600">Devengado</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.pagado) / 1000000).toFixed(0)}m</p>
+                                  <p className="text-gray-600">Pagado</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.por_cobrar) / 1000000).toFixed(0)}m</p>
+                                  <p className="text-gray-600">Por cobrar</p>
+                                </div>
                               </div>
-                              <div className="flex justify-between items-center text-gray-700">
-                                <span className="font-medium">Fin:</span>
-                                <span className="text-xs">{format(new Date(project.estimated_execution_date), 'dd/MM/yyyy', { locale: es })}</span>
+
+                              {/* Dates */}
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <p className="font-semibold text-gray-900">{format(new Date(project.start_date), 'dd/MM/yyyy', { locale: es })}</p>
+                                  <p className="text-gray-600">Fecha de inicio</p>
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-gray-900">{format(new Date(project.estimated_execution_date), 'dd/MM/yyyy', { locale: es })}</p>
+                                  <p className="text-gray-600">Fecha de fin</p>
+                                </div>
                               </div>
                             </div>
                           )}
 
                           {config.key === 'Completados' && (
-                            <div className="space-y-2 text-xs">
-                              <div className="flex justify-between items-center border-b pb-2">
-                                <span className="text-gray-600">Ingresos</span>
-                                <span className="font-semibold">${Number(project.ingresos).toLocaleString()}</span>
+                            <div className="space-y-3 text-xs">
+                              {/* Title Section */}
+                              <div className="border-b pb-2 mb-2">
+                                <p className="font-bold text-gray-900">PROYECTO (METODO)</p>
+                                <p className="text-gray-600 text-xs mt-1">{project.client} – {project.relacion} - {project.empresa}</p>
                               </div>
-                              <div className="flex justify-between items-center border-b pb-2">
-                                <span className="text-gray-600">Costo</span>
-                                <span className="font-semibold">${Number(project.costo).toLocaleString()}</span>
-                              </div>
-                              <div className="flex justify-between items-center border-b pb-2">
-                                <span className="text-gray-600">Utilidad</span>
-                                <span className="font-semibold">${Number(project.utilidad).toLocaleString()}</span>
-                              </div>
-                              <div className="flex justify-between items-center border-b pb-2">
-                                <span className="text-gray-600">Utilidad %</span>
-                                <span className="font-semibold">{Number(project.utilidad_porcentaje)}%</span>
-                              </div>
-                              <div className="grid grid-cols-3 gap-1 border-t pt-2 text-xs">
+
+                              {/* Financial metrics - 4 columns */}
+                              <div className="grid grid-cols-4 gap-1 border-b pb-2">
                                 <div className="text-center">
-                                  <p className="text-gray-600">${Number(project.devengado)}</p>
-                                  <p className="text-gray-500">Devengado</p>
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.ingresos) / 1000000).toFixed(0)}m</p>
+                                  <p className="text-gray-600">Ingreso</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="text-gray-600">${Number(project.pagado)}</p>
-                                  <p className="text-gray-500">Pagado</p>
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.costo) / 1000000).toFixed(0)}m</p>
+                                  <p className="text-gray-600">Costo</p>
                                 </div>
                                 <div className="text-center">
-                                  <p className="text-gray-600">${Number(project.por_cobrar)}</p>
-                                  <p className="text-gray-500">Por cobrar</p>
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.utilidad) / 1000000).toFixed(0)}m</p>
+                                  <p className="text-gray-600">Utilidad</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="font-bold text-gray-900 text-sm">{Number(project.utilidad_porcentaje)}%</p>
+                                  <p className="text-gray-600">Utilidad</p>
                                 </div>
                               </div>
-                              <div className="flex justify-between items-center border-t pt-2 text-gray-700">
-                                <span className="font-medium">Inicio:</span>
-                                <span className="text-xs">{format(new Date(project.start_date), 'dd/MM/yyyy', { locale: es })}</span>
+
+                              {/* Payment metrics - 3 columns */}
+                              <div className="grid grid-cols-3 gap-1 border-b pb-2">
+                                <div className="text-center">
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.devengado) / 1000000).toFixed(0)}m</p>
+                                  <p className="text-gray-600">Devengado</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.pagado) / 1000000).toFixed(0)}m</p>
+                                  <p className="text-gray-600">Pagado</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="font-bold text-gray-900 text-sm">${(Number(project.por_cobrar) / 1000000).toFixed(0)}m</p>
+                                  <p className="text-gray-600">Por cobrar</p>
+                                </div>
                               </div>
-                              <div className="flex justify-between items-center text-gray-700">
-                                <span className="font-medium">Fin:</span>
-                                <span className="text-xs">{format(new Date(project.estimated_execution_date), 'dd/MM/yyyy', { locale: es })}</span>
+
+                              {/* Dates */}
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <p className="font-semibold text-gray-900">{format(new Date(project.start_date), 'dd/MM/yyyy', { locale: es })}</p>
+                                  <p className="text-gray-600">Fecha de inicio</p>
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-gray-900">{format(new Date(project.estimated_execution_date), 'dd/MM/yyyy', { locale: es })}</p>
+                                  <p className="text-gray-600">Fecha de fin</p>
+                                </div>
                               </div>
                             </div>
                           )}

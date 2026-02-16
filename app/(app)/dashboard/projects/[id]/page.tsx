@@ -122,8 +122,17 @@ export default function ProjectDetailPage() {
           </div>
           <p className="text-gray-600">Cliente: {project.client}</p>
         </div>
-        <div className="text-right">
+        <div className="flex items-center gap-3">
           <Badge>{project.status === 'planning' ? 'Planificación' : 'En Progreso'}</Badge>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => router.push(`/dashboard/projects/${projectId}/edit`)}
+            className="gap-2"
+          >
+            <Edit2 className="w-4 h-4" />
+            Editar
+          </Button>
         </div>
       </div>
 
