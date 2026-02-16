@@ -14,7 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Calendar, Users, DollarSign } from 'lucide-react'
+import { Plus, Calendar, Users, DollarSign, TrendingUp, CheckCircle2, Clock } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -75,13 +75,23 @@ export default function DashboardPage() {
     )
   }
 
+  // Calculate metrics
+  const totalProjects = projects.length
+  const inProgressProjects = projects.filter((p) => p.status === 'in_progress').length
+  const completedProjects = projects.filter((p) => p.status === 'completed').length
+  const plannedProjects = projects.filter((p) => p.status === 'planning').length
+  const totalInvestment = projects.reduce((sum, p) => sum + (Number(p.estimated_amount) || 0), 0)
+
+  // Get recent projects
+  const recentProjects = projects.slice(0, 5)
+
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Proyectos</h1>
-          <p className="text-gray-600 mt-1">Gestiona todos tus proyectos en una plataforma</p>
+          <h1 className="text-3xl font-bold text-gray-900">Panel Ejecutivo</h1>
+          <p className="text-gray-600 mt-1">Resumen de todos tus proyectos y actividades</p>
         </div>
         <Button onClick={() => router.push('/dashboard/projects/new')} size="lg">
           <Plus className="w-5 h-5 mr-2" />
@@ -89,49 +99,169 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Total de Proyectos
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Total de Proyectos
+              </CardTitle>
+              <TrendingUp className="w-4 h-4 text-blue-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{projects.length}</p>
+            <p className="text-3xl font-bold text-gray-900">{totalProjects}</p>
+            <p className="text-xs text-gray-500 mt-1">Activos y completados</p>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              En Progreso
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                En Progreso
+              </CardTitle>
+              <Clock className="w-4 h-4 text-amber-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">
-              {Array.isArray(projects) ? projects.filter((p) => p.status === 'in_progress').length : 0}
-            </p>
+            <p className="text-3xl font-bold text-gray-900">{inProgressProjects}</p>
+            <p className="text-xs text-gray-500 mt-1">{Math.round((inProgressProjects / totalProjects || 0) * 100)}% del total</p>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Completados
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Completados
+              </CardTitle>
+              <CheckCircle2 className="w-4 h-4 text-green-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">
-              {Array.isArray(projects) ? projects.filter((p) => p.status === 'completed').length : 0}
-            </p>
+            <p className="text-3xl font-bold text-gray-900">{completedProjects}</p>
+            <p className="text-xs text-gray-500 mt-1">Proyectos finalizados</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Planificación
+              </CardTitle>
+              <Calendar className="w-4 h-4 text-purple-500" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-gray-900">{plannedProjects}</p>
+            <p className="text-xs text-gray-500 mt-1">Por iniciar</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Inversión Total
+              </CardTitle>
+              <DollarSign className="w-4 h-4 text-green-600" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-gray-900">${(totalInvestment / 1000000).toFixed(1)}M</p>
+            <p className="text-xs text-gray-500 mt-1">En todos los proyectos</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Projects Table */}
+      {/* Projects Overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Status Distribution */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Estado de Proyectos</CardTitle>
+            <CardDescription>Distribución actual por estado</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">En Progreso</span>
+                  <span className="text-sm font-bold text-gray-900">{inProgressProjects}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-500 h-2 rounded-full" 
+                    style={{ width: `${(inProgressProjects / totalProjects || 0) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Completados</span>
+                  <span className="text-sm font-bold text-gray-900">{completedProjects}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-green-500 h-2 rounded-full" 
+                    style={{ width: `${(completedProjects / totalProjects || 0) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Planificación</span>
+                  <span className="text-sm font-bold text-gray-900">{plannedProjects}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-purple-500 h-2 rounded-full" 
+                    style={{ width: `${(plannedProjects / totalProjects || 0) * 100}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Stats */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Resumen Rápido</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <p className="text-xs text-blue-600 font-medium">Tasa de Progreso</p>
+              <p className="text-2xl font-bold text-blue-900 mt-1">
+                {totalProjects > 0 ? Math.round((inProgressProjects / totalProjects) * 100) : 0}%
+              </p>
+            </div>
+            
+            <div className="p-3 bg-green-50 rounded-lg">
+              <p className="text-xs text-green-600 font-medium">Tasa de Finalización</p>
+              <p className="text-2xl font-bold text-green-900 mt-1">
+                {totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0}%
+              </p>
+            </div>
+
+            <div className="p-3 bg-purple-50 rounded-lg">
+              <p className="text-xs text-purple-600 font-medium">Proyectos Pendientes</p>
+              <p className="text-2xl font-bold text-purple-900 mt-1">{plannedProjects}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Projects Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Proyectos</CardTitle>
-          <CardDescription>Todos tus proyectos activos y completados</CardDescription>
+          <CardTitle>Proyectos Recientes</CardTitle>
+          <CardDescription>Últimos {recentProjects.length} proyectos creados</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -157,7 +287,7 @@ export default function DashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {projects.map((project) => (
+                {recentProjects.map((project) => (
                   <TableRow key={project.id}>
                     <TableCell className="font-medium">{project.name}</TableCell>
                     <TableCell>{project.client}</TableCell>
