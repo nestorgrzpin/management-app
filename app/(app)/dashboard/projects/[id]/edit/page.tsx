@@ -78,6 +78,7 @@ export default function ProjectEditPage() {
           start_date: formData.start_date,
           estimated_execution_date: formData.estimated_execution_date,
           adjudication_type: formData.adjudication_type,
+          fase: formData.fase,
         })
         .eq('id', projectId)
 
@@ -216,6 +217,22 @@ export default function ProjectEditPage() {
                 onChange={(e) => handleInputChange('adjudication_type', e.target.value)}
                 placeholder="ADSN, AD, etc."
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Etapa del Proyecto
+              </label>
+              <select
+                value={formData.fase || 'Preparación de propuesta'}
+                onChange={(e) => handleInputChange('fase', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="Preparación de propuesta">Preparación de propuesta</option>
+                <option value="Adjudicación">Adjudicación</option>
+                <option value="Ejecución">Ejecución</option>
+                <option value="Cierre">Cierre</option>
+              </select>
             </div>
           </CardContent>
         </Card>

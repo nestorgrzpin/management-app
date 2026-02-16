@@ -13,6 +13,7 @@ import { es } from 'date-fns/locale'
 export default function DashboardPage() {
   const [projects, setProjects] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [draggedProject, setDraggedProject] = useState<any>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -64,6 +65,53 @@ export default function DashboardPage() {
       : 0
 
     return { count, totalAmount, avgUtility: Math.round(avgUtility) }
+  }
+
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, project: any) => {
+    setDraggedProject(project)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = async (e: React.DragEvent, targetColumn: string) => {
+    e.preventDefault()
+    
+    if (!draggedProject) return
+
+    // Determine new fase based on target column
+    let newFase = draggedProject.fase
+    
+    if (targetColumn === 'Adjudicación y ejecución') {
+      newFase = 'Adjudicación'
+    } else if (targetColumn === 'Completados') {
+      newFase = 'Cierre'
+    } else if (targetColumn === 'Preparación de propuesta') {
+      newFase = 'Preparación de propuesta'
+    }
+
+    // Update in database
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({ fase: newFase })
+        .eq('id', draggedProject.id)
+
+      if (!error) {
+        // Update local state
+        setProjects(projects.map(p => 
+          p.id === draggedProject.id ? { ...p, fase: newFase } : p
+        ))
+      }
+    } catch (error) {
+      console.error('[v0] Error updating project:', error)
+    } finally {
+      setDraggedProject(null)
+    }
   }
 
   const columnConfigs = [
@@ -146,7 +194,11 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Column Cards */}
-                <div className={`${config.color} ${config.borderColor} border border-t-0 rounded-b-lg p-4 space-y-3 flex-1 overflow-y-auto max-h-[600px]`}>
+                <div 
+                  className={`${config.color} ${config.borderColor} border border-t-0 rounded-b-lg p-4 space-y-3 flex-1 overflow-y-auto max-h-[600px]`}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, config.key)}
+                >
                   {columnProjects.length === 0 ? (
                     <div className="text-center py-8">
                       <p className="text-gray-500 text-sm">Sin proyectos en esta fase</p>
@@ -155,7 +207,9 @@ export default function DashboardPage() {
                     columnProjects.map((project) => (
                       <Card 
                         key={project.id} 
-                        className="cursor-pointer hover:shadow-lg transition-shadow"
+                        className="cursor-grab active:cursor-grabbing hover:shadow-lg transition-shadow"
+                        draggable
+                        onDragStart={(e) => handleDragStart(e as any, project)}
                         onClick={() => router.push(`/dashboard/projects/${project.id}`)}
                       >
                         <CardContent className="pt-6 space-y-3">
