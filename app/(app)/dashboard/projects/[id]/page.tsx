@@ -203,6 +203,7 @@ export default function ProjectDetailPage() {
         </TabsContent>
 
         <TabsContent value="activities" className="space-y-4">
+          {/* ActivitiesTable temporarily disabled
           <ActivitiesTable
             activities={activities}
             projectId={projectId}
@@ -234,6 +235,10 @@ export default function ProjectDetailPage() {
                 })
             }}
           />
+          */}
+          <div className="flex items-center justify-center h-32 bg-gray-50 rounded-lg">
+            <p className="text-gray-500">Tabla de actividades - En mantenimiento</p>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
