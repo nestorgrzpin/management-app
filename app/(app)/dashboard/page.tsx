@@ -158,17 +158,13 @@ export default function DashboardPage() {
                         className="cursor-pointer hover:shadow-lg transition-shadow"
                         onClick={() => router.push(`/dashboard/projects/${project.id}`)}
                       >
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm line-clamp-2">{project.name}</CardTitle>
-                          <p className="text-xs text-gray-600 mt-1">{project.client}</p>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
+                        <CardContent className="pt-6 space-y-3">
                           {/* Show different info based on column */}
                           {config.key === 'Preparación de propuesta' && (
                             <div className="space-y-3 text-xs">
-                              {/* Title Section */}
+                              {/* Title Section - First line: PROJECT NAME (METODO) */}
                               <div className="border-b pb-2 mb-2">
-                                <p className="font-bold text-gray-900">PROYECTO (METODO)</p>
+                                <p className="font-bold text-gray-900">{project.name} ({project.adjudication_type || 'SIN METODO'})</p>
                                 <p className="text-gray-600 text-xs mt-1">{project.client} – {project.relacion} - {project.empresa}</p>
                               </div>
 
@@ -208,9 +204,9 @@ export default function DashboardPage() {
 
                           {config.key === 'Adjudicación y ejecución' && (
                             <div className="space-y-3 text-xs">
-                              {/* Title Section */}
+                              {/* Title Section - First line: PROJECT NAME (METODO) */}
                               <div className="border-b pb-2 mb-2">
-                                <p className="font-bold text-gray-900">PROYECTO (METODO)</p>
+                                <p className="font-bold text-gray-900">{project.name} ({project.adjudication_type || 'SIN METODO'})</p>
                                 <p className="text-gray-600 text-xs mt-1">{project.client} – {project.relacion} - {project.empresa}</p>
                               </div>
 
@@ -266,9 +262,9 @@ export default function DashboardPage() {
 
                           {config.key === 'Completados' && (
                             <div className="space-y-3 text-xs">
-                              {/* Title Section */}
+                              {/* Title Section - First line: PROJECT NAME (METODO) */}
                               <div className="border-b pb-2 mb-2">
-                                <p className="font-bold text-gray-900">PROYECTO (METODO)</p>
+                                <p className="font-bold text-gray-900">{project.name} ({project.adjudication_type || 'SIN METODO'})</p>
                                 <p className="text-gray-600 text-xs mt-1">{project.client} – {project.relacion} - {project.empresa}</p>
                               </div>
 
