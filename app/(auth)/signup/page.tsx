@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -17,6 +17,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { AlertCircle } from 'lucide-react'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -24,11 +26,27 @@ export default function SignupPage() {
   const [fullName, setFullName] = useState('')
   const [role, setRole] = useState('analyst')
   const [loading, setLoading] = useState(false)
+  const [supabaseError, setSupabaseError] = useState<string | null>(null)
   const router = useRouter()
-  const supabase = createClient()
+
+  useEffect(() => {
+    try {
+      createClient()
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('[v0] Supabase client error:', errorMsg)
+      setSupabaseError('Las variables de entorno de Supabase no están configuradas correctamente.')
+    }
+  }, [])
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (supabaseError) {
+      toast.error('Supabase no está configurado correctamente')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -39,6 +57,8 @@ export default function SignupPage() {
       }
 
       console.log('[v0] Attempting signup with:', { email, fullName, role })
+
+      const supabase = createClient()
 
       const { data, error: signupError } = await supabase.auth.signUp({
         email,
@@ -55,6 +75,7 @@ export default function SignupPage() {
       if (signupError) {
         console.error('[v0] Signup error:', signupError)
         toast.error(`Error en registro: ${signupError.message}`)
+        setLoading(false)
         return
       }
 
@@ -67,7 +88,6 @@ export default function SignupPage() {
       console.error('[v0] Signup exception:', error)
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido'
       toast.error(`Error: ${errorMsg}`)
-    } finally {
       setLoading(false)
     }
   }
@@ -80,6 +100,13 @@ export default function SignupPage() {
           <CardDescription>Crea tu cuenta para acceder a la plataforma</CardDescription>
         </CardHeader>
         <CardContent>
+          {supabaseError && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{supabaseError}</AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleSignup} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="fullName">Nombre Completo</Label>
@@ -90,6 +117,7 @@ export default function SignupPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
+                disabled={!!supabaseError || loading}
               />
             </div>
             <div className="space-y-2">
@@ -101,6 +129,7 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={!!supabaseError || loading}
               />
             </div>
             <div className="space-y-2">
@@ -112,11 +141,12 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={!!supabaseError || loading}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Rol</Label>
-              <Select value={role} onValueChange={setRole}>
+              <Select value={role} onValueChange={setRole} disabled={!!supabaseError || loading}>
                 <SelectTrigger id="role">
                   <SelectValue />
                 </SelectTrigger>
@@ -126,7 +156,11 @@ export default function SignupPage() {
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={loading || !!supabaseError}
+            >
               {loading ? 'Registrando...' : 'Registrarse'}
             </Button>
           </form>

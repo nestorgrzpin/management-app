@@ -7,33 +7,72 @@ import { createClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { LayoutDashboard, LogOut, Plus } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { AlertCircle } from 'lucide-react'
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     const checkAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+      try {
+        const supabase = createClient()
+        
+        console.log('[v0] Checking authentication...')
 
-      if (!session) {
-        router.push('/login')
-      } else {
-        setUser(session.user)
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession()
+
+        if (sessionError) {
+          console.error('[v0] Session error:', sessionError)
+          setError('Error al verificar la sesión')
+          setLoading(false)
+          return
+        }
+
+        if (!session) {
+          console.log('[v0] No session found, redirecting to login')
+          router.push('/login')
+        } else {
+          console.log('[v0] Session found for user:', session.user.email)
+          setUser(session.user)
+          setLoading(false)
+        }
+      } catch (err) {
+        console.error('[v0] Auth check error:', err)
+        const errorMsg = err instanceof Error ? err.message : 'Error desconocido'
+        setError(`Error de autenticación: ${errorMsg}`)
         setLoading(false)
       }
     }
 
     checkAuth()
-  }, [router, supabase])
+  }, [router])
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
+    try {
+      const supabase = createClient()
+      await supabase.auth.signOut()
+      router.push('/login')
+    } catch (err) {
+      console.error('[v0] Logout error:', err)
+    }
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    )
   }
 
   if (loading) {
