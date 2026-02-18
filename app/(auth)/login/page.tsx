@@ -1,8 +1,6 @@
 'use client'
 
-import React from "react"
-
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -10,34 +8,16 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
+import { EnvDiagnostics } from '@/components/env-diagnostics'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [supabaseError, setSupabaseError] = useState<string | null>(null)
   const router = useRouter()
-
-  useEffect(() => {
-    try {
-      createClient()
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Error desconocido'
-      console.error('[v0] Supabase client error:', errorMsg)
-      setSupabaseError('Las variables de entorno de Supabase no están configuradas correctamente.')
-    }
-  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (supabaseError) {
-      toast.error('Supabase no está configurado correctamente')
-      return
-    }
-
     setLoading(true)
 
     try {
@@ -59,7 +39,8 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error('[v0] Login exception:', error)
-      toast.error('An error occurred during login')
+      const msg = error instanceof Error ? error.message : 'Error desconocido'
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -73,13 +54,7 @@ export default function LoginPage() {
           <CardDescription>Accede a la plataforma de gestión de proyectos</CardDescription>
         </CardHeader>
         <CardContent>
-          {supabaseError && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{supabaseError}</AlertDescription>
-            </Alert>
-          )}
-          
+          <EnvDiagnostics />
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Correo Electrónico</Label>
@@ -90,7 +65,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={!!supabaseError || loading}
+                disabled={loading}
               />
             </div>
             <div className="space-y-2">
@@ -102,13 +77,13 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                disabled={!!supabaseError || loading}
+                disabled={loading}
               />
             </div>
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={loading || !!supabaseError}
+              disabled={loading}
             >
               {loading ? 'Iniciando...' : 'Iniciar Sesión'}
             </Button>
