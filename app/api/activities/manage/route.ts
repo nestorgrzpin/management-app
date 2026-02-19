@@ -34,53 +34,70 @@ export async function GET(request: NextRequest) {
 
     const supabase = await getSupabaseServer()
 
-    // Query project_activities with JOIN to activities and phases
-    const { data, error } = await supabase
+    // First, get all project_activities for this project
+    const { data: projectActivitiesData, error: paError } = await supabase
       .from('project_activities')
-      .select(`
-        id,
-        project_id,
-        activity_id,
-        status,
-        progress_percentage,
-        responsible_user_id,
-        responsible_department,
-        sharepoint_link,
-        actual_start_date,
-        actual_end_date,
-        duration_days,
-        estimated_duration_days,
-        notes,
-        slack_days,
-        created_at,
-        updated_at,
-        activities(
-          id,
-          code,
-          name,
-          objective,
-          phase_id,
-          parent_activity_id,
-          is_subactivity,
-          base_duration_value,
-          base_duration_unit,
-          responsible_actor,
-          phases(id, name, phase_number, description)
-        )
-      `)
+      .select('id, project_id, activity_id, status, progress_percentage, responsible_user_id, responsible_department, sharepoint_link, actual_start_date, actual_end_date, duration_days, estimated_duration_days, notes, slack_days, created_at, updated_at')
       .eq('project_id', projectId)
-      .order('created_at', { ascending: true })
 
-    if (error) {
-      console.error('[v0] Error fetching activities:', error)
-      return NextResponse.json(
-        { error: error.message, code: error.code },
-        { status: 400 }
-      )
+    if (paError) {
+      console.error('[v0] Error fetching project_activities:', paError)
+      return NextResponse.json({ error: paError.message, code: paError.code }, { status: 400 })
     }
 
-    console.log('[v0] Activities fetched successfully:', data?.length || 0)
-    return NextResponse.json(data || [])
+    // Then, get all activities referenced by these project_activities
+    if (!projectActivitiesData || projectActivitiesData.length === 0) {
+      console.log('[v0] No project_activities found for this project')
+      return NextResponse.json([])
+    }
+
+    const activityIds = projectActivitiesData.map((pa: any) => pa.activity_id).filter(Boolean)
+    
+    const { data: activitiesData, error: aError } = await supabase
+      .from('activities')
+      .select('id, code, name, objective, phase_id, parent_activity_id, is_subactivity, base_duration_value, base_duration_unit, responsible_actor')
+      .in('id', activityIds)
+
+    if (aError) {
+      console.error('[v0] Error fetching activities:', aError)
+      return NextResponse.json({ error: aError.message, code: aError.code }, { status: 400 })
+    }
+
+    // Then, get all phases for these activities
+    const phaseIds = activitiesData.map((a: any) => a.phase_id).filter(Boolean)
+    
+    const { data: phasesData, error: phError } = await supabase
+      .from('phases')
+      .select('id, name, phase_number, description')
+      .in('id', phaseIds)
+
+    if (phError) {
+      console.error('[v0] Error fetching phases:', phError)
+      return NextResponse.json({ error: phError.message, code: phError.code }, { status: 400 })
+    }
+
+    // Create lookup maps for efficient merging
+    const activitiesMap = activitiesData.reduce((acc: any, a: any) => {
+      acc[a.id] = a
+      return acc
+    }, {})
+
+    const phasesMap = phasesData.reduce((acc: any, p: any) => {
+      acc[p.id] = p
+      return acc
+    }, {})
+
+    // Merge data together
+    const mergedData = projectActivitiesData.map((pa: any) => ({
+      ...pa,
+      activities: activitiesMap[pa.activity_id] ? {
+        ...activitiesMap[pa.activity_id],
+        phases: phasesMap[activitiesMap[pa.activity_id].phase_id] || null
+      } : null
+    }))
+
+    console.log('[v0] Activities fetched successfully:', mergedData.length)
+    return NextResponse.json(mergedData)
   } catch (error) {
     console.error('[v0] Unexpected error:', error)
     return NextResponse.json(
