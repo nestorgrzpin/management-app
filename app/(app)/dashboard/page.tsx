@@ -10,7 +10,14 @@ interface Project {
   id: string
   name: string
   client: string
+  relacion?: string
+  empresa?: string
   ingresos_maximo: number
+  costo: number
+  utilidad: number
+  utilidad_porcentaje: number
+  start_date: string
+  estimated_execution_date: string
   status: string
   fase?: string
 }
@@ -19,6 +26,7 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [draggedProject, setDraggedProject] = useState<Project | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -27,15 +35,11 @@ export default function DashboardPage() {
 
   const loadProjects = async () => {
     try {
-      console.log('[v0] Loading projects from API')
-      
       const response = await fetch('/api/projects')
       if (response.ok) {
         const data = await response.json()
-        console.log('[v0] Projects loaded:', data?.length || 0)
         setProjects(data || [])
       } else {
-        console.error('[v0] API error:', response.status, response.statusText)
         setError('Error al cargar proyectos')
       }
     } catch (err) {
@@ -61,10 +65,69 @@ export default function DashboardPage() {
     return 'Planeación'
   }
 
+  const getNewFaseFromEtapa = (etapa: string) => {
+    if (etapa === 'Planeación') return 'Identificación de oportunidades'
+    if (etapa === 'Ejecución') return 'Adjudicación y contratación'
+    if (etapa === 'Cierre') return 'Cierre'
+    return 'Identificación de oportunidades'
+  }
+
+  const handleDragStart = (e: React.DragEvent, project: Project) => {
+    setDraggedProject(project)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = async (e: React.DragEvent, targetEtapa: string) => {
+    e.preventDefault()
+    
+    if (!draggedProject) return
+
+    const newFase = getNewFaseFromEtapa(targetEtapa)
+    
+    // Optimistic update
+    setProjects(projects.map(p =>
+      p.id === draggedProject.id ? { ...p, fase: newFase } : p
+    ))
+
+    try {
+      const response = await fetch(`/api/projects/${draggedProject.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fase: newFase })
+      })
+
+      if (!response.ok) {
+        // Revert on error
+        setProjects(projects.map(p =>
+          p.id === draggedProject.id ? draggedProject : p
+        ))
+      }
+    } catch (err) {
+      console.error('[v0] Error updating project:', err)
+      // Revert on error
+      setProjects(projects.map(p =>
+        p.id === draggedProject.id ? draggedProject : p
+      ))
+    } finally {
+      setDraggedProject(null)
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    return date.toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' })
+  }
+
   const stages = ['Planeación', 'Ejecución', 'Cierre']
   
   return (
-    <div className="space-y-8 p-8">
+    <div className="space-y-8 p-8 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Panel Ejecutivo</h1>
@@ -89,31 +152,89 @@ export default function DashboardPage() {
           {stages.map((stage) => {
             const stageProjects = projects.filter((p) => mapFaseToEtapa(p.fase) === stage)
             return (
-              <Card key={stage} className="flex flex-col">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">{stage}</CardTitle>
+              <div
+                key={stage}
+                className="flex flex-col bg-white rounded-lg border border-gray-200 shadow-sm"
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, stage)}
+              >
+                <div className="sticky top-0 bg-white border-b border-gray-200 p-4 rounded-t-lg">
+                  <h2 className="text-lg font-bold">{stage}</h2>
                   <p className="text-sm text-gray-500">
                     {stageProjects.length} proyecto{stageProjects.length !== 1 ? 's' : ''}
                   </p>
-                </CardHeader>
-                <CardContent className="flex-1 space-y-2">
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-96">
                   {stageProjects.length === 0 ? (
                     <p className="text-sm text-gray-400 text-center py-8">Sin proyectos</p>
                   ) : (
                     stageProjects.map((project) => (
-                      <Card 
-                        key={project.id} 
-                        className="p-3 cursor-pointer hover:bg-gray-50 transition border-gray-200"
+                      <div
+                        key={project.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, project)}
+                        className="bg-white border border-gray-300 rounded p-4 cursor-move hover:shadow-md transition hover:border-gray-400 select-none"
                         onClick={() => router.push(`/dashboard/projects/${project.id}`)}
                       >
-                        <p className="font-medium text-sm">{project.name}</p>
-                        <p className="text-xs text-gray-500">{project.client}</p>
-                        <p className="text-xs text-gray-400 mt-1">${project.ingresos_maximo}M</p>
-                      </Card>
+                        {/* Título y relación */}
+                        <h3 className="font-bold text-sm leading-tight">
+                          {project.name}
+                        </h3>
+                        <p className="text-xs text-gray-600 mt-1">
+                          {project.client && project.relacion && project.empresa
+                            ? `${project.client} - ${project.relacion} - ${project.empresa}`
+                            : project.client || 'Sin cliente'}
+                        </p>
+
+                        {/* Métricas financieras */}
+                        <div className="grid grid-cols-4 gap-2 mt-3 pt-3 border-t border-gray-200">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-800">
+                              {project.ingresos_maximo}m
+                            </p>
+                            <p className="text-xs text-gray-600">Ingreso</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-800">
+                              {project.costo || 0}m
+                            </p>
+                            <p className="text-xs text-gray-600">Costo</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-800">
+                              {project.utilidad || 0}m
+                            </p>
+                            <p className="text-xs text-gray-600">Utilidad</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-800">
+                              {project.utilidad_porcentaje || 0}%
+                            </p>
+                            <p className="text-xs text-gray-600">Utilidad %</p>
+                          </div>
+                        </div>
+
+                        {/* Fechas */}
+                        <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-200">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-800">
+                              {formatDate(project.start_date)}
+                            </p>
+                            <p className="text-xs text-gray-600">Fecha de inicio</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-800">
+                              {formatDate(project.estimated_execution_date)}
+                            </p>
+                            <p className="text-xs text-gray-600">Fecha de fin</p>
+                          </div>
+                        </div>
+                      </div>
                     ))
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )
           })}
         </div>
