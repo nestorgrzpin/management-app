@@ -115,27 +115,6 @@ export default function DashboardPage() {
     }
   }
 
-    // Update in database
-    try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('projects')
-        .update({ fase: newFase })
-        .eq('id', draggedProject.id)
-
-      if (!error) {
-        // Update local state
-        setProjects(projects.map(p => 
-          p.id === draggedProject.id ? { ...p, fase: newFase } : p
-        ))
-      }
-    } catch (error) {
-      console.error('[v0] Error updating project:', error)
-    } finally {
-      setDraggedProject(null)
-    }
-  }
-
   const columnConfigs = [
     {
       title: 'Planificación',
