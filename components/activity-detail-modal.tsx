@@ -141,7 +141,7 @@ export function ActivityDetailModal({
             {activity.activities?.code} - {activity.activities?.name}
           </DialogTitle>
           <DialogDescription>
-            Fase: {activity.activities?.phase}
+            Fase: {activity.activities?.phases?.name || 'Sin fase'}
           </DialogDescription>
         </DialogHeader>
 
