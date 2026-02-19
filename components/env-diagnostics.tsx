@@ -1,12 +1,26 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+
 export function EnvDiagnostics() {
-  const supabaseUrl = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_URL : null
-  const supabaseKey = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY : null
+  const [mounted, setMounted] = useState(false)
+  const [supabaseUrl, setSupabaseUrl] = useState<boolean>(false)
+  const [supabaseKey, setSupabaseKey] = useState<boolean>(false)
+
+  useEffect(() => {
+    setMounted(true)
+    setSupabaseUrl(!!process.env.NEXT_PUBLIC_SUPABASE_URL)
+    setSupabaseKey(!!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  }, [])
+
+  // Don't render anything until mounted on client
+  if (!mounted) {
+    return null
+  }
 
   if (!supabaseUrl || !supabaseKey) {
     return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
         <h3 className="font-bold text-red-900 mb-2">Verificación de Configuración</h3>
         <ul className="text-sm text-red-800 space-y-1">
           <li>NEXT_PUBLIC_SUPABASE_URL: {supabaseUrl ? '✓' : '✗ No configurada'}</li>
