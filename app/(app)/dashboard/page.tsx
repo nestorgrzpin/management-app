@@ -16,9 +16,6 @@ interface Project {
   costo: number
   utilidad: number
   utilidad_porcentaje: number
-  devengado?: number
-  pagado?: number
-  por_cobrar?: number
   start_date: string
   estimated_execution_date: string
   status: string
@@ -55,7 +52,7 @@ export default function DashboardPage() {
 
   const mapFaseToEtapa = (fase?: string) => {
     if (!fase) return 'Planeación'
-    
+
     if (fase === 'Identificación de oportunidades' || fase === 'Preparación de propuesta') {
       return 'Planeación'
     }
@@ -87,11 +84,11 @@ export default function DashboardPage() {
 
   const handleDrop = async (e: React.DragEvent, targetEtapa: string) => {
     e.preventDefault()
-    
+
     if (!draggedProject) return
 
     const newFase = getNewFaseFromEtapa(targetEtapa)
-    
+
     // Optimistic update
     setProjects(projects.map(p =>
       p.id === draggedProject.id ? { ...p, fase: newFase } : p
@@ -128,7 +125,7 @@ export default function DashboardPage() {
   }
 
   const stages = ['Planeación', 'Ejecución', 'Cierre']
-  
+
   return (
     <div className="space-y-8 p-8 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center">
@@ -217,30 +214,6 @@ export default function DashboardPage() {
                             <p className="text-xs text-gray-600">Utilidad %</p>
                           </div>
                         </div>
-
-                        {/* Métricas de devengado (Ejecución y Cierre) */}
-                        {(stage === 'Ejecución' || stage === 'Cierre') && (
-                          <div className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-gray-200">
-                            <div>
-                              <p className="text-sm font-semibold text-gray-800">
-                                {project.devengado || 0}m
-                              </p>
-                              <p className="text-xs text-gray-600">Devengado</p>
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold text-gray-800">
-                                {project.pagado || 0}m
-                              </p>
-                              <p className="text-xs text-gray-600">Pagado</p>
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold text-gray-800">
-                                {project.por_cobrar || 0}m
-                              </p>
-                              <p className="text-xs text-gray-600">Por cobrar</p>
-                            </div>
-                          </div>
-                        )}
 
                         {/* Fechas */}
                         <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-200">
