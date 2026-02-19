@@ -12,15 +12,20 @@ export default function Home() {
     const checkAuth = async () => {
       try {
         const { createClient } = await import('@/lib/supabase')
-        const supabase = createClient()
+        
+        try {
+          const supabase = createClient()
+          const {
+            data: { session },
+          } = await supabase.auth.getSession()
 
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
-
-        if (session) {
-          router.push('/dashboard')
-        } else {
+          if (session) {
+            router.push('/dashboard')
+          } else {
+            router.push('/login')
+          }
+        } catch (supabaseError) {
+          console.warn('[v0] Supabase not available, redirecting to login:', supabaseError)
           router.push('/login')
         }
       } catch (error) {
