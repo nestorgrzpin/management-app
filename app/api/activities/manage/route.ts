@@ -22,7 +22,7 @@ async function getSupabaseServer() {
   )
 }
 
-// GET activities for a project with full details
+// GET activities for a project with full details, grouped by phases
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     const supabase = await getSupabaseServer()
 
-    // Query with only confirmed existing columns in project_activities
+    // Query project_activities with JOIN to activities and phases
     const { data, error } = await supabase
       .from('project_activities')
       .select(`
@@ -54,7 +54,19 @@ export async function GET(request: NextRequest) {
         slack_days,
         created_at,
         updated_at,
-        activities(id, code, name)
+        activities(
+          id,
+          code,
+          name,
+          objective,
+          phase_id,
+          parent_activity_id,
+          is_subactivity,
+          base_duration_value,
+          base_duration_unit,
+          responsible_actor,
+          phases(id, name, order)
+        )
       `)
       .eq('project_id', projectId)
       .order('created_at', { ascending: true })

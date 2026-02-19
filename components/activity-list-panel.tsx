@@ -34,6 +34,7 @@ const STATUS_LABELS = {
 export function ActivityListPanel({ projectId }: ActivityListPanelProps) {
   const [activities, setActivities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set())
   const [selectedActivity, setSelectedActivity] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -55,6 +56,14 @@ export function ActivityListPanel({ projectId }: ActivityListPanelProps) {
       const data = await response.json()
       console.log('[v0] Activities loaded:', data?.length || 0)
       setActivities(data)
+      
+      // Open first phase by default
+      if (data && data.length > 0) {
+        const firstPhase = data[0]?.activities?.phases?.name
+        if (firstPhase) {
+          setExpandedPhases(new Set([firstPhase]))
+        }
+      }
     } catch (error) {
       console.error('[v0] Error fetching activities:', error)
       toast.error('Error al cargar actividades')
@@ -107,9 +116,9 @@ export function ActivityListPanel({ projectId }: ActivityListPanelProps) {
   }
 
   const groupedActivities = activities.reduce((acc: any, activity: any) => {
-    const phase = activity.activities?.phase || 'Sin Fase'
-    if (!acc[phase]) acc[phase] = []
-    acc[phase].push(activity)
+    const phaseName = activity.activities?.phases?.name || 'Sin Fase'
+    if (!acc[phaseName]) acc[phaseName] = []
+    acc[phaseName].push(activity)
     return acc
   }, {})
 
