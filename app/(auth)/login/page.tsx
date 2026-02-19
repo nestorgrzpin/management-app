@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
-import { EnvDiagnostics } from '@/components/env-diagnostics'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -62,7 +61,6 @@ export default function LoginPage() {
           <CardDescription>Accede a la plataforma de gestión de proyectos</CardDescription>
         </CardHeader>
         <CardContent>
-          <EnvDiagnostics />
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Correo Electrónico</Label>
