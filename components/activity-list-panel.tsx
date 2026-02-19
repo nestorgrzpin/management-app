@@ -34,7 +34,6 @@ const STATUS_LABELS = {
 export function ActivityListPanel({ projectId }: ActivityListPanelProps) {
   const [activities, setActivities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set(['Planificación']))
   const [selectedActivity, setSelectedActivity] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -45,10 +44,16 @@ export function ActivityListPanel({ projectId }: ActivityListPanelProps) {
   const fetchActivities = async () => {
     try {
       setLoading(true)
+      console.log('[v0] Fetching activities for project:', projectId)
       const response = await fetch(`/api/activities/manage?project_id=${projectId}`)
-      if (!response.ok) throw new Error('Error fetching activities')
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Error fetching activities')
+      }
 
       const data = await response.json()
+      console.log('[v0] Activities loaded:', data?.length || 0)
       setActivities(data)
     } catch (error) {
       console.error('[v0] Error fetching activities:', error)

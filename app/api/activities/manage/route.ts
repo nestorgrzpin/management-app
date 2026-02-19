@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     const supabase = await getSupabaseServer()
 
-    // First attempt: try with all fields - NO phase field
+    // Query with only confirmed existing columns in project_activities
     const { data, error } = await supabase
       .from('project_activities')
       .select(`
@@ -54,42 +54,20 @@ export async function GET(request: NextRequest) {
         slack_days,
         created_at,
         updated_at,
-        activities(
-          id,
-          code,
-          name,
-          base_duration_value,
-          base_duration_unit,
-          predecessor_code,
-          responsible_actor
-        ),
-        activity_documents(
-          id,
-          title,
-          sharepoint_url,
-          document_type,
-          created_at
-        )
+        activities(id, code, name)
       `)
       .eq('project_id', projectId)
-      .order('activities(code)', { ascending: true })
+      .order('created_at', { ascending: true })
 
     if (error) {
       console.error('[v0] Error fetching activities:', error)
-      console.log('[v0] Trying alternative query without phase field...')
-      
-      // If error is about phase column, return error with information
-      if (error.message.includes('phase')) {
-        return NextResponse.json(
-          { error: 'Phase field not found in activities table', details: error.message },
-          { status: 400 }
-        )
-      }
-      
-      return NextResponse.json({ error: error.message }, { status: 400 })
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: 400 }
+      )
     }
 
-    console.log('[v0] Activities fetched:', data?.length || 0)
+    console.log('[v0] Activities fetched successfully:', data?.length || 0)
     return NextResponse.json(data || [])
   } catch (error) {
     console.error('[v0] Unexpected error:', error)
