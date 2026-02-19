@@ -24,28 +24,10 @@ export default function DashboardPage() {
 
   const loadProjects = async () => {
     try {
-      // Get current user session from Supabase
-      const { createClient } = await import('@/lib/supabase')
-      const supabase = createClient()
+      console.log('[v0] Loading projects from API')
       
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
-      if (sessionError) {
-        console.error('[v0] Error getting session:', sessionError)
-        setLoading(false)
-        return
-      }
-
-      if (!session?.user?.id) {
-        console.warn('[v0] No session found, redirecting to login')
-        router.push('/login')
-        return
-      }
-
-      console.log('[v0] Loading projects for user:', session.user.id)
-
-      // Fetch projects for this user
-      const response = await fetch(`/api/projects?user_id=${session.user.id}`)
+      // Fetch projects directly without user_id
+      const response = await fetch('/api/projects')
       if (response.ok) {
         const data = await response.json()
         console.log('[v0] Projects loaded:', data?.length || 0)

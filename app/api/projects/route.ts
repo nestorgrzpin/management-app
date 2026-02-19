@@ -145,13 +145,18 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('user_id')
 
-    console.log('[v0] Fetching projects for user:', userId)
+    console.log('[v0] Fetching projects - user_id:', userId || 'not provided (returning all)')
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('projects')
       .select('id, name, client, start_date, estimated_execution_date, ingresos_maximo, ingresos_minimo, costo, utilidad, utilidad_porcentaje, devengado, pagado, por_cobrar, adjudication_type, status, fase, relacion, empresa, created_by, created_at, updated_at')
-      .eq('created_by', userId)
-      .order('created_at', { ascending: false })
+
+    // Only filter by user if user_id is provided
+    if (userId) {
+      query = query.eq('created_by', userId)
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false })
 
     if (error) {
       console.error('[v0] Error fetching projects:', error)
