@@ -149,20 +149,22 @@ export default function DashboardPage() {
           <p className="text-gray-600">Gestión centralizada de proyectos y actividades</p>
         </div>
         <div className="flex gap-6 items-center">
-          <Image 
-            src="/images/SIE.png" 
-            alt="SIE Technologies" 
-            width={100} 
-            height={40}
-            className="h-10 w-auto"
-          />
-          <Image 
-            src="/images/Telinfra.png" 
-            alt="Telinfra Sistemas" 
-            width={120} 
-            height={40}
-            className="h-10 w-auto"
-          />
+          <div className="relative w-20 h-10">
+            <Image 
+              src="/images/SIE.png" 
+              alt="SIE Technologies" 
+              fill
+              className="object-contain"
+            />
+          </div>
+          <div className="relative w-32 h-10">
+            <Image 
+              src="/images/Telinfra.png" 
+              alt="Telinfra Sistemas" 
+              fill
+              className="object-contain"
+            />
+          </div>
           <Button onClick={() => router.push('/dashboard/projects/new')} className="gap-2">
             <Plus className="w-4 h-4" />
             Nuevo Proyecto

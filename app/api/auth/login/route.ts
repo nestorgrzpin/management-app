@@ -13,10 +13,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if environment variables are available
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('[v0] Missing Supabase environment variables:', {
+        url: !!supabaseUrl,
+        key: !!supabaseKey
+      })
+      return NextResponse.json(
+        { error: 'Supabase configuration is missing. Please check environment variables.' },
+        { status: 500 }
+      )
+    }
+
     const cookieStore = await cookies()
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      supabaseUrl,
+      supabaseKey,
       {
         cookies: {
           getAll() {
