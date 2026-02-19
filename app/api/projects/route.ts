@@ -145,15 +145,18 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('user_id')
 
-    console.log('[v0] Fetching projects - user_id:', userId || 'not provided (returning all)')
+    console.log('[v0] Fetching projects - user_id param:', userId, 'type:', typeof userId)
 
     let query = supabase
       .from('projects')
       .select('id, name, client, start_date, estimated_execution_date, ingresos_maximo, ingresos_minimo, costo, utilidad, utilidad_porcentaje, devengado, pagado, por_cobrar, adjudication_type, status, fase, relacion, empresa, created_by, created_at, updated_at')
 
-    // Only filter by user if user_id is provided
-    if (userId) {
+    // Only filter by user if user_id is provided AND not "null" string
+    if (userId && userId !== 'null' && userId !== 'undefined') {
+      console.log('[v0] Filtering projects by user_id:', userId)
       query = query.eq('created_by', userId)
+    } else {
+      console.log('[v0] Returning all projects (no user_id filter)')
     }
 
     const { data, error } = await query.order('created_at', { ascending: false })

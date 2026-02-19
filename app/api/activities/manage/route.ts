@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
 
     const supabase = await getSupabaseServer()
 
+    // First attempt: try with all fields including phase
     const { data, error } = await supabase
       .from('project_activities')
       .select(`
@@ -57,7 +58,6 @@ export async function GET(request: NextRequest) {
           id,
           code,
           name,
-          phase,
           base_duration_value,
           base_duration_unit,
           predecessor_code,
@@ -76,9 +76,20 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('[v0] Error fetching activities:', error)
+      console.log('[v0] Trying alternative query without phase field...')
+      
+      // If error is about phase column, return error with information
+      if (error.message.includes('phase')) {
+        return NextResponse.json(
+          { error: 'Phase field not found in activities table', details: error.message },
+          { status: 400 }
+        )
+      }
+      
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
+    console.log('[v0] Activities fetched:', data?.length || 0)
     return NextResponse.json(data || [])
   } catch (error) {
     console.error('[v0] Unexpected error:', error)
