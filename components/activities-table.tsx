@@ -76,7 +76,7 @@ export default function ActivitiesTable({
           sharepoint_link,
           progress_percentage,
           activity_id,
-          activities(name, phase)
+          activities(name)
         `
         )
         .eq('project_id', projectId)
@@ -95,7 +95,6 @@ export default function ActivitiesTable({
           id: item.id,
           project_activity_id: item.id,
           name: item.activities?.name || 'Sin nombre',
-          phase: item.activities?.phase,
           status: item.status || 'not_started',
           start_date: item.start_date,
           end_date: item.end_date,

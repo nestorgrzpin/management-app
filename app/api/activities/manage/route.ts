@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     const supabase = await getSupabaseServer()
 
-    // First attempt: try with all fields including phase
+    // First attempt: try with all fields - NO phase field
     const { data, error } = await supabase
       .from('project_activities')
       .select(`
