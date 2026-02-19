@@ -13,11 +13,15 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import GanttChart from '@/components/gantt-chart'
 import { ActivityListPanel } from '@/components/activity-list-panel'
+import ActivitiesTable from '@/components/activities-table'
+import { ActivityDetailModal } from '@/components/activity-detail-modal'
 
 export default function ProjectDetailPage() {
   const [project, setProject] = useState<any>(null)
   const [activities, setActivities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedActivity, setSelectedActivity] = useState<any>(null)
+  const [showActivityModal, setShowActivityModal] = useState(false)
   const params = useParams()
   const router = useRouter()
   const supabase = createClient()
@@ -223,9 +227,13 @@ export default function ProjectDetailPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 text-sm">
-                    Haz clic en una actividad en el panel lateral para verdetalhes y editar información
-                  </p>
+                  <ActivitiesTable
+                    projectId={projectId}
+                    onActivitySelect={(activity) => {
+                      setSelectedActivity(activity)
+                      setShowActivityModal(true)
+                    }}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -237,6 +245,24 @@ export default function ProjectDetailPage() {
           <ActivityListPanel projectId={projectId} />
         </div>
       </div>
+
+      {/* Activity Detail Modal */}
+      {selectedActivity && (
+        <ActivityDetailModal
+          activity={selectedActivity}
+          projectId={projectId}
+          isOpen={showActivityModal}
+          onClose={() => {
+            setShowActivityModal(false)
+            setSelectedActivity(null)
+          }}
+          onSave={async () => {
+            setShowActivityModal(false)
+            setSelectedActivity(null)
+            // Reload activities could be added here
+          }}
+        />
+      )}
     </div>
   )
 }
