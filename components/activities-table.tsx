@@ -60,12 +60,14 @@ export default function ActivitiesTable({
   const loadActivities = async () => {
     try {
       setLoading(true)
+      console.log('[v0] Loading activities for project:', projectId)
+      
       const { data, error } = await supabase
         .from('project_activities')
         .select(
           `
           id,
-          name:activity_id(name),
+          name,
           phase,
           status,
           start_date,
@@ -82,14 +84,17 @@ export default function ActivitiesTable({
 
       if (error) {
         console.error('[v0] Error loading activities:', error)
+        setLoading(false)
         return
       }
+
+      console.log('[v0] Activities loaded:', data?.length, data)
 
       if (data) {
         const formattedActivities = data.map((item: any) => ({
           id: item.id,
           project_activity_id: item.id,
-          name: item.name?.name || 'Sin nombre',
+          name: item.name || 'Sin nombre',
           phase: item.phase,
           status: item.status || 'not_started',
           start_date: item.start_date,

@@ -494,6 +494,8 @@ const TEMPLATE_ACTIVITIES = [
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[v0] Seed activities: Starting');
+    
     // Get all projects
     const { data: projects, error: projectsError } = await supabase
       .from("projects")
@@ -502,16 +504,20 @@ export async function POST(request: NextRequest) {
     if (projectsError) throw projectsError;
 
     if (!projects || projects.length === 0) {
+      console.log('[v0] Seed activities: No projects found');
       return NextResponse.json({
         error: "No projects found",
         status: 404,
       });
     }
 
+    console.log('[v0] Seed activities: Found', projects.length, 'projects');
+
     const activitiesData = [];
 
     // Create activities for each project based on template
     for (const project of projects) {
+      console.log('[v0] Seed activities: Creating activities for project:', project.name);
       for (const activity of TEMPLATE_ACTIVITIES) {
         const startDate = new Date();
         startDate.setDate(startDate.getDate() + activitiesData.length);
@@ -534,13 +540,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    console.log('[v0] Seed activities: Preparing to insert', activitiesData.length, 'activities');
+
     // Insert activities
     const { data: insertedActivities, error: insertError } = await supabase
       .from("project_activities")
       .insert(activitiesData)
       .select();
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      console.error('[v0] Seed activities: Insert error:', insertError);
+      throw insertError;
+    }
+
+    console.log('[v0] Seed activities: Success! Created', insertedActivities?.length, 'activities');
 
     return NextResponse.json({
       success: true,
