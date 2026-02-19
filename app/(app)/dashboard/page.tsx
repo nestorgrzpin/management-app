@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Plus } from 'lucide-react'
+import Image from 'next/image'
 
 interface Project {
   id: string
@@ -16,6 +17,9 @@ interface Project {
   costo: number
   utilidad: number
   utilidad_porcentaje: number
+  devengado?: number
+  pagado?: number
+  por_cobrar?: number
   start_date: string
   estimated_execution_date: string
   status: string
@@ -126,17 +130,44 @@ export default function DashboardPage() {
 
   const stages = ['Planeación', 'Ejecución', 'Cierre']
 
+  // Calculate stage statistics
+  const getStageStats = (stage: string) => {
+    const stageProjects = projects.filter((p) => mapFaseToEtapa(p.fase) === stage)
+    const totalProjects = stageProjects.length
+    const totalIngresos = stageProjects.reduce((sum, p) => sum + (p.ingresos_maximo || 0), 0)
+    const percentage = projects.length > 0 ? Math.round((totalProjects / projects.length) * 100) : 0
+
+    return { totalProjects, totalIngresos, percentage, projects: stageProjects }
+  }
+
   return (
     <div className="space-y-8 p-8 bg-gray-50 min-h-screen">
+      {/* Header con logos */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Panel Ejecutivo</h1>
           <p className="text-gray-600">Gestión centralizada de proyectos y actividades</p>
         </div>
-        <Button onClick={() => router.push('/dashboard/projects/new')} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Nuevo Proyecto
-        </Button>
+        <div className="flex gap-6 items-center">
+          <Image 
+            src="/images/SIE.png" 
+            alt="SIE Technologies" 
+            width={100} 
+            height={40}
+            className="h-10 w-auto"
+          />
+          <Image 
+            src="/images/Telinfra.png" 
+            alt="Telinfra Sistemas" 
+            width={120} 
+            height={40}
+            className="h-10 w-auto"
+          />
+          <Button onClick={() => router.push('/dashboard/projects/new')} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Nuevo Proyecto
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -150,7 +181,7 @@ export default function DashboardPage() {
       ) : (
         <div className="grid grid-cols-3 gap-6">
           {stages.map((stage) => {
-            const stageProjects = projects.filter((p) => mapFaseToEtapa(p.fase) === stage)
+            const { totalProjects, totalIngresos, percentage, projects: stageProjects } = getStageStats(stage)
             return (
               <div
                 key={stage}
@@ -158,11 +189,23 @@ export default function DashboardPage() {
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, stage)}
               >
-                <div className="sticky top-0 bg-white border-b border-gray-200 p-4 rounded-t-lg">
-                  <h2 className="text-lg font-bold">{stage}</h2>
-                  <p className="text-sm text-gray-500">
-                    {stageProjects.length} proyecto{stageProjects.length !== 1 ? 's' : ''}
-                  </p>
+                {/* Header con estadísticas mejorado */}
+                <div className="sticky top-0 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-4 rounded-t-lg">
+                  <h2 className="text-lg font-bold text-gray-900">{stage}</h2>
+                  <div className="grid grid-cols-3 gap-4 mt-3">
+                    <div className="bg-white rounded p-2 border border-blue-200">
+                      <p className="text-sm font-bold text-blue-700">{totalProjects}</p>
+                      <p className="text-xs text-gray-600">Proyectos</p>
+                    </div>
+                    <div className="bg-white rounded p-2 border border-indigo-200">
+                      <p className="text-sm font-bold text-indigo-700">${totalIngresos}M</p>
+                      <p className="text-xs text-gray-600">Ingresos</p>
+                    </div>
+                    <div className="bg-white rounded p-2 border border-green-200">
+                      <p className="text-sm font-bold text-green-700">{percentage}%</p>
+                      <p className="text-xs text-gray-600">Del total</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-96">
@@ -174,7 +217,7 @@ export default function DashboardPage() {
                         key={project.id}
                         draggable
                         onDragStart={(e) => handleDragStart(e, project)}
-                        className="bg-white border border-gray-300 rounded p-4 cursor-move hover:shadow-md transition hover:border-gray-400 select-none"
+                        className="bg-white border border-gray-300 rounded p-3 cursor-move hover:shadow-md transition hover:border-gray-400 select-none"
                         onClick={() => router.push(`/dashboard/projects/${project.id}`)}
                       >
                         {/* Título y relación */}
@@ -187,47 +230,71 @@ export default function DashboardPage() {
                             : project.client || 'Sin cliente'}
                         </p>
 
-                        {/* Métricas financieras */}
+                        {/* Métricas financieras principales */}
                         <div className="grid grid-cols-4 gap-2 mt-3 pt-3 border-t border-gray-200">
                           <div>
-                            <p className="text-sm font-semibold text-gray-800">
+                            <p className="text-xs font-semibold text-gray-800">
                               {project.ingresos_maximo}m
                             </p>
                             <p className="text-xs text-gray-600">Ingreso</p>
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-gray-800">
+                            <p className="text-xs font-semibold text-gray-800">
                               {project.costo || 0}m
                             </p>
                             <p className="text-xs text-gray-600">Costo</p>
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-gray-800">
+                            <p className="text-xs font-semibold text-gray-800">
                               {project.utilidad || 0}m
                             </p>
                             <p className="text-xs text-gray-600">Utilidad</p>
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-gray-800">
+                            <p className="text-xs font-semibold text-gray-800">
                               {project.utilidad_porcentaje || 0}%
                             </p>
-                            <p className="text-xs text-gray-600">Utilidad %</p>
+                            <p className="text-xs text-gray-600">Util %</p>
                           </div>
                         </div>
+
+                        {/* Datos de ejecución (visible solo en etapa Ejecución) */}
+                        {stage === 'Ejecución' && (project.devengado || project.pagado || project.por_cobrar) && (
+                          <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-gray-200">
+                            <div>
+                              <p className="text-xs font-semibold text-gray-800">
+                                {project.devengado || 0}m
+                              </p>
+                              <p className="text-xs text-gray-600">Devengado</p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-gray-800">
+                                {project.pagado || 0}m
+                              </p>
+                              <p className="text-xs text-gray-600">Pagado</p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-gray-800">
+                                {project.por_cobrar || 0}m
+                              </p>
+                              <p className="text-xs text-gray-600">Por cobrar</p>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Fechas */}
                         <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-200">
                           <div>
-                            <p className="text-sm font-semibold text-gray-800">
+                            <p className="text-xs font-semibold text-gray-800">
                               {formatDate(project.start_date)}
                             </p>
-                            <p className="text-xs text-gray-600">Fecha de inicio</p>
+                            <p className="text-xs text-gray-600">Inicio</p>
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-gray-800">
+                            <p className="text-xs font-semibold text-gray-800">
                               {formatDate(project.estimated_execution_date)}
                             </p>
-                            <p className="text-xs text-gray-600">Fecha de fin</p>
+                            <p className="text-xs text-gray-600">Fin</p>
                           </div>
                         </div>
                       </div>
