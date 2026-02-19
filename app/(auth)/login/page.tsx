@@ -21,7 +21,15 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const supabase = createClient()
+      let supabase
+      try {
+        supabase = createClient()
+      } catch (clientError) {
+        console.error('[v0] Failed to create Supabase client:', clientError)
+        toast.error('Supabase no está configurado correctamente. Por favor verifica las variables de entorno.')
+        setLoading(false)
+        return
+      }
       
       console.log('[v0] Attempting login with email:', email)
 

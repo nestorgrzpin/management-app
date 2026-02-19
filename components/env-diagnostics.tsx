@@ -1,37 +1,47 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { AlertCircle } from 'lucide-react'
 
 export function EnvDiagnostics() {
   const [mounted, setMounted] = useState(false)
-  const [supabaseUrl, setSupabaseUrl] = useState<boolean>(false)
-  const [supabaseKey, setSupabaseKey] = useState<boolean>(false)
+  const [hasUrl, setHasUrl] = useState(false)
+  const [hasKey, setHasKey] = useState(false)
 
   useEffect(() => {
+    // Check if environment variables are available
+    const url = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_URL : undefined
+    const key = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY : undefined
+
+    setHasUrl(!!url)
+    setHasKey(!!key)
     setMounted(true)
-    setSupabaseUrl(!!process.env.NEXT_PUBLIC_SUPABASE_URL)
-    setSupabaseKey(!!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
   }, [])
 
-  // Don't render anything until mounted on client
+  // Only render after hydration to prevent mismatch
   if (!mounted) {
     return null
   }
 
-  if (!supabaseUrl || !supabaseKey) {
-    return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
-        <h3 className="font-bold text-red-900 mb-2">Verificación de Configuración</h3>
-        <ul className="text-sm text-red-800 space-y-1">
-          <li>NEXT_PUBLIC_SUPABASE_URL: {supabaseUrl ? '✓' : '✗ No configurada'}</li>
-          <li>NEXT_PUBLIC_SUPABASE_ANON_KEY: {supabaseKey ? '✓' : '✗ No configurada'}</li>
-        </ul>
-        <p className="text-xs text-red-700 mt-3">
-          Asegúrate de que las variables están en la sección Vars de v0. Puede necesitar recargar la página.
-        </p>
-      </div>
-    )
+  // If both variables are present, don't show anything
+  if (hasUrl && hasKey) {
+    return null
   }
 
-  return null
+  // Show error if variables are missing
+  return (
+    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3">
+      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+      <div>
+        <h3 className="font-semibold text-red-900">Configuración Incompleta</h3>
+        <ul className="text-sm text-red-800 mt-2 space-y-1">
+          {!hasUrl && <li>✗ NEXT_PUBLIC_SUPABASE_URL no está configurada</li>}
+          {!hasKey && <li>✗ NEXT_PUBLIC_SUPABASE_ANON_KEY no está configurada</li>}
+        </ul>
+        <p className="text-xs text-red-700 mt-3">
+          Configura estas variables en la sección Vars de v0 y recarga la página.
+        </p>
+      </div>
+    </div>
+  )
 }

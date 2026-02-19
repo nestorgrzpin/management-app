@@ -37,7 +37,15 @@ export default function SignupPage() {
 
       console.log('[v0] Attempting signup with:', { email, fullName, role })
 
-      const supabase = createClient()
+      let supabase
+      try {
+        supabase = createClient()
+      } catch (clientError) {
+        console.error('[v0] Failed to create Supabase client:', clientError)
+        toast.error('Supabase no está configurado correctamente. Por favor verifica las variables de entorno.')
+        setLoading(false)
+        return
+      }
 
       const { data, error: signupError } = await supabase.auth.signUp({
         email,
