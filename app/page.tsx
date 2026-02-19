@@ -11,21 +11,20 @@ export default function Home() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const { createClient } = await import('@/lib/supabase')
-        
-        try {
-          const supabase = createClient()
-          const {
-            data: { session },
-          } = await supabase.auth.getSession()
+        // Check auth via server endpoint instead of client Supabase
+        const response = await fetch('/api/auth/session', {
+          credentials: 'include'
+        })
 
+        if (response.ok) {
+          const { session } = await response.json()
           if (session) {
             router.push('/dashboard')
           } else {
             router.push('/login')
           }
-        } catch (supabaseError) {
-          console.warn('[v0] Supabase not available, redirecting to login:', supabaseError)
+        } else {
+          // If auth check fails, go to login
           router.push('/login')
         }
       } catch (error) {
