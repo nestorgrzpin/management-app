@@ -27,7 +27,7 @@ interface ActivityNode {
   code: string
   duration_days: number
   predecessor_code: string | null
-  phase: string
+  phase_id: string | null
 }
 
 interface CalculatedActivity extends ActivityNode {
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
         activities(
           code,
           name,
-          phase,
+          phase_id,
           predecessor_code,
           base_duration_value,
           base_duration_unit
@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
         code: pa.activities.code,
         duration_days: pa.duration_days || pa.estimated_duration_days || 1,
         predecessor_code: pa.activities.predecessor_code,
-        phase: pa.activities.phase,
+        phase_id: pa.activities.phase_id,
       }))
 
     // Calculate critical path
