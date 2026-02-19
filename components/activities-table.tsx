@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase'
 import {
   Table,
   TableBody,
@@ -21,7 +20,6 @@ interface Activity {
   id: string
   project_activity_id: string
   name: string
-  phase?: string
   status: string
   start_date?: string
   end_date?: string
@@ -51,7 +49,7 @@ export default function ActivitiesTable({
 }: ActivitiesTableProps) {
   const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     loadActivities()
@@ -60,44 +58,28 @@ export default function ActivitiesTable({
   const loadActivities = async () => {
     try {
       setLoading(true)
+      setError(null)
       console.log('[v0] Loading activities for project:', projectId)
       
-      const { data, error } = await supabase
-        .from('project_activities')
-        .select(
-          `
-          id,
-          start_date,
-          end_date,
-          estimated_duration_days,
-          duration_days,
-          status,
-          responsible_user_id,
-          sharepoint_link,
-          progress_percentage,
-          activity_id,
-          activities(name)
-        `
-        )
-        .eq('project_id', projectId)
-        .order('created_at', { ascending: true })
-
-      if (error) {
-        console.error('[v0] Error loading activities:', error)
-        setLoading(false)
-        return
+      // Use server API instead of client Supabase
+      const response = await fetch(`/api/activities/manage?project_id=${projectId}`)
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Error loading activities')
       }
 
+      const data = await response.json()
       console.log('[v0] Activities loaded:', data?.length)
 
-      if (data) {
+      if (Array.isArray(data)) {
         const formattedActivities = data.map((item: any) => ({
           id: item.id,
           project_activity_id: item.id,
           name: item.activities?.name || 'Sin nombre',
           status: item.status || 'not_started',
-          start_date: item.start_date,
-          end_date: item.end_date,
+          start_date: item.actual_start_date || item.start_date,
+          end_date: item.actual_end_date || item.end_date,
           estimated_duration_days: item.estimated_duration_days,
           duration_days: item.duration_days,
           responsible_user_id: item.responsible_user_id,
@@ -106,34 +88,10 @@ export default function ActivitiesTable({
         }))
         setActivities(formattedActivities)
       }
-    } catch (error) {
-      console.error('[v0] Failed to load activities:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-      console.log('[v0] Activities loaded:', data?.length, data)
-
-      if (data) {
-        const formattedActivities = data.map((item: any) => ({
-          id: item.id,
-          project_activity_id: item.id,
-          name: item.name || 'Sin nombre',
-          phase: item.phase,
-          status: item.status || 'not_started',
-          start_date: item.start_date,
-          end_date: item.end_date,
-          estimated_duration_days: item.estimated_duration_days,
-          duration_days: item.duration_days,
-          responsible_user_id: item.responsible_user_id,
-          sharepoint_link: item.sharepoint_link,
-          progress_percentage: item.progress_percentage || 0,
-        }))
-        setActivities(formattedActivities)
-      }
-    } catch (error) {
-      console.error('[v0] Failed to load activities:', error)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error loading activities'
+      console.error('[v0] Error loading activities:', message)
+      setError(message)
     } finally {
       setLoading(false)
     }
@@ -143,6 +101,14 @@ export default function ActivitiesTable({
     return (
       <div className="flex items-center justify-center py-12">
         <Spinner />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12 text-red-500">
+        <p>Error: {error}</p>
       </div>
     )
   }
@@ -161,7 +127,6 @@ export default function ActivitiesTable({
         <TableHeader>
           <TableRow className="bg-gray-50">
             <TableHead className="w-[200px]">Actividad</TableHead>
-            <TableHead className="w-[100px]">Fase</TableHead>
             <TableHead className="w-[120px]">Estado</TableHead>
             <TableHead className="w-[80px] text-right">Duración</TableHead>
             <TableHead className="w-[100px]">Inicio</TableHead>
@@ -174,7 +139,6 @@ export default function ActivitiesTable({
           {activities.map((activity) => (
             <TableRow key={activity.id} className="hover:bg-gray-50">
               <TableCell className="font-medium text-sm">{activity.name}</TableCell>
-              <TableCell className="text-sm">{activity.phase || '-'}</TableCell>
               <TableCell>
                 <Badge className={statusBadges[activity.status]?.color || 'bg-gray-100'}>
                   {statusBadges[activity.status]?.label || activity.status}
