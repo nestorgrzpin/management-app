@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
           base_duration_value,
           base_duration_unit,
           responsible_actor,
-          phases(id, name, order)
+          phases(id, name, phase_number, description)
         )
       `)
       .eq('project_id', projectId)
