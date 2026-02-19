@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,26 +19,21 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      let supabase
-      try {
-        supabase = createClient()
-      } catch (clientError) {
-        console.error('[v0] Failed to create Supabase client:', clientError)
-        toast.error('Supabase no está configurado correctamente. Por favor verifica las variables de entorno.')
-        setLoading(false)
-        return
-      }
-      
       console.log('[v0] Attempting login with email:', email)
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Call server-side login endpoint instead of using client Supabase
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include'
       })
 
-      if (error) {
-        console.error('[v0] Login error:', error)
-        toast.error(`Error: ${error.message}`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        console.error('[v0] Login error:', data.error)
+        toast.error(`Error: ${data.error || 'Login failed'}`)
       } else {
         console.log('[v0] Login successful')
         router.push('/dashboard')
