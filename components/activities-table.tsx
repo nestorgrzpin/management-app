@@ -67,16 +67,16 @@ export default function ActivitiesTable({
         .select(
           `
           id,
-          name,
-          phase,
-          status,
           start_date,
           end_date,
           estimated_duration_days,
           duration_days,
+          status,
           responsible_user_id,
           sharepoint_link,
-          progress_percentage
+          progress_percentage,
+          activity_id,
+          activities(name, phase)
         `
         )
         .eq('project_id', projectId)
@@ -87,6 +87,32 @@ export default function ActivitiesTable({
         setLoading(false)
         return
       }
+
+      console.log('[v0] Activities loaded:', data?.length)
+
+      if (data) {
+        const formattedActivities = data.map((item: any) => ({
+          id: item.id,
+          project_activity_id: item.id,
+          name: item.activities?.name || 'Sin nombre',
+          phase: item.activities?.phase,
+          status: item.status || 'not_started',
+          start_date: item.start_date,
+          end_date: item.end_date,
+          estimated_duration_days: item.estimated_duration_days,
+          duration_days: item.duration_days,
+          responsible_user_id: item.responsible_user_id,
+          sharepoint_link: item.sharepoint_link,
+          progress_percentage: item.progress_percentage || 0,
+        }))
+        setActivities(formattedActivities)
+      }
+    } catch (error) {
+      console.error('[v0] Failed to load activities:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
       console.log('[v0] Activities loaded:', data?.length, data)
 
