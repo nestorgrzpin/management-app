@@ -4,15 +4,14 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
-    
-    // Get the session from the auth
+
     const {
       data: { session },
       error
     } = await supabase.auth.getSession()
 
     if (error || !session) {
-      console.log('[v0] No active session')
+      console.log('[v0] No active session found')
       return NextResponse.json({ session: null })
     }
 
