@@ -1,9 +1,9 @@
-import { getSupabaseServer } from '@/lib/supabase-server'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
-    const supabase = await getSupabaseServer()
+    const supabase = await createServerSupabaseClient()
 
     // Get schema info for activities table
     const { data: activitiesColumns, error: activitiesError } = await supabase

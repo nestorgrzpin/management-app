@@ -1,7 +1,7 @@
-import { getSupabaseServer } from '@/lib/supabase-server'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
 
 export default async function DiagnosticsPage() {
-  const supabase = await getSupabaseServer()
+  const supabase = await createServerSupabaseClient()
 
   // Query information schema to get column names
   const { data: activitiesData } = await supabase.rpc('get_table_columns', {

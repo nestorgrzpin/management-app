@@ -1,26 +1,5 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
-
-async function getSupabaseServer() {
-  const cookieStore = await cookies()
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options)
-          })
-        },
-      },
-    }
-  )
-}
 
 interface ActivityNode {
   id: string
@@ -133,7 +112,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing project_id' }, { status: 400 })
     }
 
-    const supabase = await getSupabaseServer()
+    const supabase = await createServerSupabaseClient()
 
     // Fetch all activities for the project
     const { data: projectActivities, error: fetchError } = await supabase

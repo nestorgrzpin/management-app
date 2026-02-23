@@ -1,26 +1,5 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
-
-async function getSupabaseServer() {
-  const cookieStore = await cookies()
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options)
-          })
-        },
-      },
-    }
-  )
-}
 
 // GET documents for an activity
 export async function GET(request: NextRequest) {
@@ -32,7 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing project_activity_id' }, { status: 400 })
     }
 
-    const supabase = await getSupabaseServer()
+    const supabase = await createServerSupabaseClient()
 
     const { data, error } = await supabase
       .from('activity_documents')
@@ -81,7 +60,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = await getSupabaseServer()
+    const supabase = await createServerSupabaseClient()
 
     const { data, error } = await supabase
       .from('activity_documents')
@@ -121,7 +100,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Missing document_id' }, { status: 400 })
     }
 
-    const supabase = await getSupabaseServer()
+    const supabase = await createServerSupabaseClient()
 
     const { error } = await supabase
       .from('activity_documents')
