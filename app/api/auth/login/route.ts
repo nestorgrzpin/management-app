@@ -56,27 +56,37 @@ export async function POST(request: NextRequest) {
 
     console.log('[v0] Attempting to sign in with email:', email)
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    let data: any, error: any
+    try {
+      const result = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      data = result.data
+      error = result.error
+      console.log('[v0] Auth response received:', { hasData: !!data, hasError: !!error })
+    } catch (authError) {
+      console.error('[v0] Exception during auth call:', authError)
+      throw authError
+    }
 
     if (error) {
-      console.error('[v0] Supabase auth error:', error)
+      console.error('[v0] Supabase auth error:', error.message)
       return NextResponse.json(
-        { error: error.message },
+        { error: error.message || 'Authentication failed' },
         { status: 401 }
       )
     }
 
     if (!data.session) {
+      console.error('[v0] No session returned from auth')
       return NextResponse.json(
         { error: 'No session returned' },
         { status: 401 }
       )
     }
 
-    console.log('[v0] Login successful for user:', data.user.email)
+    console.log('[v0] Login successful for user:', data.user?.email)
 
     // Create response with session data
     const response = NextResponse.json({
@@ -84,6 +94,7 @@ export async function POST(request: NextRequest) {
       session: data.session,
     })
 
+    console.log('[v0] Sending success response')
     return response
   } catch (error) {
     console.error('[v0] Login endpoint error:', error)
