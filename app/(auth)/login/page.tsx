@@ -29,18 +29,23 @@ export default function LoginPage() {
         credentials: 'include'
       })
 
+      console.log('[v0] Login response status:', response.status)
+
       const data = await response.json()
+      console.log('[v0] Login response data:', data)
 
       if (!response.ok) {
         console.error('[v0] Login error:', data.error)
         toast.error(`Error: ${data.error || 'Login failed'}`)
       } else {
         console.log('[v0] Login successful')
+        toast.success('¡Sesión iniciada correctamente!')
         router.push('/dashboard')
       }
     } catch (error) {
       console.error('[v0] Login exception:', error)
-      const msg = error instanceof Error ? error.message : 'Error desconocido'
+      const msg = error instanceof Error ? error.message : 'Error de conexión. Verifica tu conexión de internet.'
+      console.error('[v0] Full error:', error)
       toast.error(msg)
     } finally {
       setLoading(false)

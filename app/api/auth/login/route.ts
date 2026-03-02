@@ -4,9 +4,13 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[v0] Login endpoint called')
+    
     const { email, password } = await request.json()
+    console.log('[v0] Received credentials for email:', email)
 
     if (!email || !password) {
+      console.warn('[v0] Missing email or password')
       return NextResponse.json(
         { error: 'Email and password are required' },
         { status: 400 }
@@ -17,13 +21,17 @@ export async function POST(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+    console.log('[v0] Supabase env check:', {
+      url: supabaseUrl ? 'configured' : 'MISSING',
+      key: supabaseKey ? 'configured' : 'MISSING'
+    })
+
     if (!supabaseUrl || !supabaseKey) {
-      console.error('[v0] Missing Supabase environment variables:', {
-        url: !!supabaseUrl,
-        key: !!supabaseKey
-      })
+      console.error('[v0] CRITICAL: Missing Supabase environment variables')
       return NextResponse.json(
-        { error: 'Supabase configuration is missing. Please check environment variables.' },
+        { 
+          error: 'Supabase no está configurado. Verifica que NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY estén en variables de entorno.' 
+        },
         { status: 500 }
       )
     }
